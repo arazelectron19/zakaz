@@ -3,7 +3,7 @@ import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc
 
 const firebaseConfig = {
     apiKey: "AIzaSyDDiPUUbX7PswseiOliElrYujBqYquu9A",
-    authDomain: "zakaz-5f32b.firebaseapp.com", 
+    authDomain: "zakaz-5f32b.firebaseapp.com",
     projectId: "zakaz-5f32b",
     storageBucket: "zakaz-5f32b.firebasestorage.app",
     messagingSenderId: "983658317062",
