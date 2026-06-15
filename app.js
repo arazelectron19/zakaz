@@ -321,3 +321,56 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         exitBulkSelectMode();
     });
 });
+
+// 🔐 PİN KOD LOGİKASI
+const CORRECT_PIN = "7388"; // Mağaza üçün şifrəni buradan dəyişə bilərsən!
+let enteredPin = "";
+
+const pinModal = document.getElementById('pinModal');
+const pinError = document.getElementById('pinError');
+const dots = document.querySelectorAll('.pin-dots .dot');
+
+document.querySelectorAll('.pin-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-val');
+        
+        if (val === "C") {
+            enteredPin = "";
+        } else if (val === "back") {
+            enteredPin = enteredPin.slice(0, -1);
+        } else if (enteredPin.length < 4) {
+            enteredPin += val;
+        }
+        
+        // Nöqtələrin rənglənməsi
+        dots.forEach((dot, index) => {
+            if (index < enteredPin.length) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        // 4 rəqəm tamamlananda yoxla
+        if (enteredPin.length === 4) {
+            setTimeout(() => {
+                if (enteredPin === CORRECT_PIN) {
+                    pinModal.style.display = "none"; // Giriş uğurludur, ekranı bağla
+                    pinError.style.display = "none";
+                    enteredPin = "";
+                    dots.forEach(d => d.classList.remove('active'));
+                    
+                    // Giriş uğurlu olanda siyahı bölməsində bildiriş çıxsın
+                    showNotification(listNotifyBox, "🔒 Təhlükəsiz giriş təmin olundu!", "success");
+                } else {
+                    pinError.style.display = "block"; // Səhv mesajı
+                    enteredPin = "";
+                    dots.forEach(d => d.classList.remove('active'));
+                    
+                    // Ekranı yüngülcə titrətmək effektini verə bilərsən
+                    navigator.vibrate ? navigator.vibrate(200) : null; 
+                }
+            }, 150);
+        }
+    });
+});

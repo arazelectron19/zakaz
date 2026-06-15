@@ -12,6 +12,35 @@
     <meta name="theme-color" content="#1e1e1e">
     <link rel="stylesheet" href="style.css">
 </head>
+
+<div id="pinModal" class="pin-overlay" style="display: flex;">
+    <div class="pin-container">
+        <h3>🔒 Giriş üçün PİN Kodu daxil edin</h3>
+        <div class="pin-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div id="pinError" class="pin-error-msg" style="display: none;">Yaxşı bax, PİN kod səhvdir! ❌</div>
+        
+        <div class="pin-keyboard">
+            <button class="pin-btn" data-val="1">1</button>
+            <button class="pin-btn" data-val="2">2</button>
+            <button class="pin-btn" data-val="3">3</button>
+            <button class="pin-btn" data-val="4">4</button>
+            <button class="pin-btn" data-val="5">5</button>
+            <button class="pin-btn" data-val="6">6</button>
+            <button class="pin-btn" data-val="7">7</button>
+            <button class="pin-btn" data-val="8">8</button>
+            <button class="pin-btn" data-val="9">9</button>
+            <button class="pin-btn clear" data-val="C">C</button>
+            <button class="pin-btn" data-val="0">0</button>
+            <button class="pin-btn delete" data-val="back">⌫</button>
+        </div>
+    </div>
+</div>
+
 <body>
 
     <div class="app-container">
