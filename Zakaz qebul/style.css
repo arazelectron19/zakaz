@@ -1,0 +1,596 @@
+/* ... Əvvəlki CSS kodları eynilə qalır ... */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121212 !important;
+    color: #e0e0e0;
+    display: flex !important;
+    justify-content: center !important; /* Məcburi üfüqi mərkəzləmə */
+    align-items: center !important;    /* Məcburi şaquli mərkəzləmə */
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0 !important;
+    padding: 10px !important;
+    box-sizing: border-box;
+}
+
+.app-container {
+    width: 100% !important;
+    max-width: 400px !important; /* Telefonda kənarlardan daşmasın deyə bir az daraltdıq */
+    margin: 0 auto !important;   /* Sağı və solu bərabər bölür */
+    display: flex !important;
+    flex-direction: column;
+    padding-bottom: 75px;
+    box-sizing: border-box;
+}
+
+.page {
+    display: none; 
+    background-color: #1e1e1e;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid #2d2d2d;
+    width: 100% !important; /* Kvadrat containerin içinə tam otursun */
+    box-sizing: border-box;
+}
+
+.page.active {
+    display: block !important;
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #2a2a2a;
+    border: 1px solid #3d3d3d;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: #3b82f6;
+}
+
+.select-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.select-group label {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+.image-buttons-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.upload-btn {
+    flex: 1;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: center;
+    display: block;
+}
+
+.file-btn { background-color: #10b981; }
+.camera-btn { background-color: #8b5cf6; }
+
+.file-status-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #252525;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+#file-name {
+    font-size: 0.85rem;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 230px;
+}
+
+.clear-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+#saveBtn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#saveBtn:disabled { background-color: #555; }
+
+.filter-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    scrollbar-width: none;
+}
+
+.filter-tabs::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+    background-color: #252525;
+    color: #888;
+    border: 1px solid #333;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.filter-btn.active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+#orderList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.empty-text {
+    text-align: center;
+    color: #777;
+    font-size: 0.95rem;
+}
+
+/* KARTIN ÜSTÜNƏ KLİKLƏMƏ EFFEKTİ */
+.order-item {
+    background-color: #252525;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid #333;
+    cursor: pointer; /* Kliklənə bilən hiss etdirsin */
+    transition: background-color 0.2s;
+}
+
+.order-item:active {
+    background-color: #2d2d2d;
+}
+
+.order-item img {
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #444;
+    pointer-events: none; /* Klik hadisəsinə mane olmasın */
+}
+
+.order-clickable-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.company-badge {
+    align-self: flex-start;
+    background-color: #3b82f6;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 450px;
+    background-color: #1e1e1e;
+    border-top: 1px solid #2d2d2d;
+    display: flex;
+    height: 60px;
+    padding: 6px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4);
+    z-index: 999;
+}
+
+.bottom-nav .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 10px;
+}
+
+.bottom-nav .nav-btn.active {
+    background-color: #2a2a2a;
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+/* 🖼️ DETAL PƏNCƏRƏSİ (MODAL STYLES) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px); /* Arxa fonu bulurlamaq üçün */
+    display: none; /* İlkin olaraq gizli */
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    z-index: 9999;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #1e1e1e;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 16px;
+    border: 1px solid #2d2d2d;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    overflow: hidden;
+    animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    padding: 15px;
+    border-bottom: 1px solid #2d2d2d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    color: #3b82f6;
+}
+
+.close-icon {
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#modalImageContainer img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: contain; /* Şəkil tamamilə görünsün və kəsilməsin */
+    background-color: #121212;
+    border-radius: 10px;
+    border: 1px solid #2d2d2d;
+}
+
+#modalProductName {
+    font-size: 1.2rem;
+    color: #fff;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #252525;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #aaa;
+}
+
+.modal-footer {
+    padding: 12px 15px;
+    background-color: #181818;
+    border-top: 1px solid #2d2d2d;
+    display: flex;
+    gap: 10px;
+}
+
+.modal-btn-close {
+    flex: 1;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-btn-delete {
+    flex: 1;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ... Əvvəlki CSS kodları tamamilə qalır, sadəcə aşağıdakıları sonuna əlavə edin ... */
+
+.modal-btn-edit {
+    flex: 1;
+    background-color: #f59e0b; /* Narıncı rəng */
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-btn-save {
+    flex: 1;
+    background-color: #10b981; /* Yaşıl rəng */
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.form-group label {
+    margin-top: 5px;
+    margin-left: 2px;
+}
+
+/* ... Əvvəlki CSS kodları tamamilə qalır, aşağıdakıları sonuna əlavə et ... */
+
+/* Toplu Seçim Paneli */
+.bulk-panel {
+    background-color: #252525;
+    border: 1px solid #3d3d3d;
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#bulkSelectCount {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.bulk-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.bulk-btn-cancel {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.bulk-btn-delete {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Kartın içindəki Checkbox dairəsi */
+.order-checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 5px;
+    animation: fadeInCheck 0.2s ease-out;
+}
+
+@keyframes fadeInCheck {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.custom-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #555;
+    border-radius: 50%; /* Tam dairəvi format */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+/* Kart seçiləndə Checkbox-un və özünün alacağı fərqli dizayn */
+.order-item.selected-mode {
+    border-color: #555;
+}
+
+.order-item.checked {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.08);
+}
+
+.order-item.checked .custom-checkbox {
+    border-color: #3b82f6;
+    background-color: #3b82f6;
+}
+
+.order-item.checked .custom-checkbox::after {
+    content: "✓";
+    color: white;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* ... Əvvəlki CSS kodları eynilə qalır, aşağıdakıları sonuna artır ... */
+
+/* Alınmış (Deaktiv) Sifarişin Kart Stili */
+.order-item.status-passive {
+    opacity: 0.45; /* Kartı solğunlaşdırır (bozardır) */
+    border-color: #2e7d32 !important; /* Kənarlarını yaşıl edir */
+    background-color: rgba(46, 125, 50, 0.03);
+}
+
+/* Alındı nişanı */
+.alindi-badge {
+    background-color: #2e7d32;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    display: inline-block;
+}
+
+/* Quş düyməsinin alındıqdan sonrakı vəziyyəti */
+.quick-del.done {
+    background-color: #2e7d32 !important;
+    color: #fff !important;
+    cursor: not-allowed;
+}
+
+/* ... Əvvəlki CSS kodları eynilə qalır, bunu sonuna artırın ... */
+
+.bulk-btn-passive {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.bulk-btn-passive:hover {
+    background-color: #1b5e20;
+}
+
+/* Panel düymələrinin mobildə sıxışmaması üçün kiçik nizamlanma */
+.bulk-panel {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start !important;
+}
+
+@media(min-width: 380px) {
+    .bulk-panel {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center !important;
+    }
+}
