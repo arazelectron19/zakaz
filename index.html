@@ -6,11 +6,10 @@
     <title>Elektron Zakaz</title>
     <link rel="manifest" href="manifest.json">
 
-<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
-<link rel="apple-touch-icon" href="icon.png">
-
-<meta name="theme-color" content="#1e1e1e">
+    <meta name="theme-color" content="#1e1e1e">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -48,11 +47,15 @@
                 </div>
 
                 <button id="saveBtn">Sifarişi Göndər</button>
+                
+                <div id="createNotifyBox" class="inline-notify" style="display: none;"></div>
             </div>
         </div>
 
-    <div id="page-list" class="card-section page">
+        <div id="page-list" class="card-section page">
             <h2>📋 Aktiv Sifarişlər</h2>
+
+            <div id="listNotifyBox" class="inline-notify" style="display: none;"></div>
 
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="🔍 Axtar">

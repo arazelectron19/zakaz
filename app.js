@@ -27,7 +27,11 @@ const fileStatusBox = document.getElementById('fileStatusBox');
 const clearImageBtn = document.getElementById('clearImageBtn');
 const saveBtn = document.getElementById('saveBtn');
 const orderListContainer = document.getElementById('orderList');
-const searchInput = document.getElementById('searchInput'); // 🔍 Yeni axtarış elementi
+const searchInput = document.getElementById('searchInput');
+
+// BİLDİRİŞ ELEMENTLƏRİ
+const createNotifyBox = document.getElementById('createNotifyBox');
+const listNotifyBox = document.getElementById('listNotifyBox');
 
 const navCreate = document.getElementById('nav-create');
 const navList = document.getElementById('nav-list');
@@ -63,12 +67,24 @@ const bulkMarkPassiveBtn = document.getElementById('bulkMarkPassiveBtn');
 
 let selectedFile = null;
 let currentFilter = "all";
-let searchQuery = ""; // 🔍 Axtarış mətni üçün dəyişən
+let searchQuery = ""; 
 let allOrders = [];
 let activeOrderId = null; 
 
 let isBulkSelectMode = false;
 let selectedOrderIds = new Set();
+
+// 🔔 PEŞƏKAR BLOK DAXİLİ BİLDİRİŞ FUNKSİYASI
+function showNotification(targetBox, text, type) {
+    targetBox.textContent = text;
+    targetBox.className = `inline-notify ${type}`; // type: 'success' və ya 'error'
+    targetBox.style.display = "block";
+    
+    // 3 saniyə sonra səliqəli itir
+    setTimeout(() => {
+        targetBox.style.display = "none";
+    }, 3000);
+}
 
 // Səhifə Keçidləri
 navCreate.addEventListener('click', () => {
@@ -86,10 +102,15 @@ productImageInput.addEventListener('change', (e) => { handleFileSelection(e.targ
 cameraImageInput.addEventListener('change', (e) => { handleFileSelection(e.target.files[0]); productImageInput.value = ""; });
 clearImageBtn.addEventListener('click', () => { productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none'; });
 
-// SİFARİŞİ GÖNDƏRMƏK
+// SİFARİŞİ GÖNDƏRMƏK (YENİLƏNDİ)
 saveBtn.addEventListener('click', async () => {
     const name = productNameInput.value.trim(); const count = productCountInput.value.trim(); const company = companySelect.value;
-    if (!name) { alert("Zəhmət olmasa məhsul adını daxil edin!"); return; }
+    
+    if (!name) { 
+        showNotification(createNotifyBox, "⚠️ Zəhmət olmasa məhsul adını daxil edin!", "error"); 
+        return; 
+    }
+    
     saveBtn.disabled = true; saveBtn.textContent = "Göndərilir..."; let imageUrl = "";
     if (selectedFile) {
         const formData = new FormData(); formData.append("image", selectedFile);
@@ -98,8 +119,10 @@ saveBtn.addEventListener('click', async () => {
     try {
         await addDoc(collection(db, "orders"), { name: name, count: count ? parseInt(count) : null, company: company, image: imageUrl, status: "active", timestamp: new Date().getTime() });
         productNameInput.value = ""; productCountInput.value = ""; companySelect.value = ""; productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none';
-        alert("Sifariş uğurla yazıldı!");
-    } catch (error) { alert("Xəta: " + error.message); } finally { saveBtn.disabled = false; saveBtn.textContent = "Sifarişi Göndər"; }
+        showNotification(createNotifyBox, "✅ Sifariş uğurla verilənlər bazasına yazıldı!", "success");
+    } catch (error) { 
+        showNotification(createNotifyBox, "❌ Xəta baş verdi: " + error.message, "error"); 
+    } finally { saveBtn.disabled = false; saveBtn.textContent = "Sifarişi Göndər"; }
 });
 
 // MODAL FUNKSİYALARI
@@ -124,12 +147,23 @@ detailsModal.addEventListener('click', (e) => { if(e.target === detailsModal) cl
 
 modalSaveEditBtn.addEventListener('click', async () => {
     const updatedName = editProductName.value.trim(); const updatedCount = editProductCount.value.trim(); const updatedCompany = editCompanySelect.value;
-    if (!updatedName) { alert("Məhsul adı boş buraxıla bilməz!"); return; }
+    if (!updatedName) { showNotification(listNotifyBox, "⚠️ Məhsul adı boş buraxıla bilməz!", "error"); return; }
     modalSaveEditBtn.disabled = true; modalSaveEditBtn.textContent = "Yenilənir...";
-    try { await updateDoc(doc(db, "orders", activeOrderId), { name: updatedName, count: updatedCount ? parseInt(updatedCount) : null, company: updatedCompany }); closeModal(); } catch (error) { alert("Xəta: " + error.message); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
+    try { 
+        await updateDoc(doc(db, "orders", activeOrderId), { name: updatedName, count: updatedCount ? parseInt(updatedCount) : null, company: updatedCompany }); 
+        closeModal();
+        showNotification(listNotifyBox, "✏️ Sifariş uğurla yeniləndi!", "success");
+    } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
 });
 
-modalDeleteBtn.addEventListener('click', async () => { if (activeOrderId && confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { const idToUpdate = activeOrderId; closeModal(); await updateDoc(doc(db, "orders", idToUpdate), { status: "passive" }); } });
+modalDeleteBtn.addEventListener('click', async () => { 
+    if (activeOrderId && confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { 
+        const idToUpdate = activeOrderId; 
+        closeModal(); 
+        await updateDoc(doc(db, "orders", idToUpdate), { status: "passive" }); 
+        showNotification(listNotifyBox, "✓ Məhsul alındı olaraq təsdiqləndi!", "success");
+    } 
+});
 
 // TOPLU SEÇİM REJİMİ
 function enterBulkSelectMode(firstOrderId) { isBulkSelectMode = true; selectedOrderIds.clear(); if (firstOrderId) selectedOrderIds.add(firstOrderId); bulkSelectPanel.style.display = "flex"; updateBulkPanelUI(); renderOrders(); }
@@ -138,50 +172,55 @@ function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { se
 function updateBulkPanelUI() { bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; }
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
 
-// TOPLU ALINDI REJİMİ
+// TOPLU ALINDI REJİMİ (YENİLƏNDİ)
 bulkMarkPassiveBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
-    if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul alındı olaraq təsdiqlənsin?`)) {
+    const count = selectedOrderIds.size;
+    if (confirm(`Seçilmiş ${count} məhsul alındı olaraq təsdiqlənsin?`)) {
         const batch = writeBatch(db); selectedOrderIds.forEach(id => { batch.update(doc(db, "orders", id), { status: "passive" }); });
-        try { await batch.commit(); exitBulkSelectMode(); } catch (error) { alert("Xəta: " + error.message); }
+        try { 
+            await batch.commit(); 
+            exitBulkSelectMode(); 
+            showNotification(listNotifyBox, `🟢 ${count} ədəd məhsul toplu olaraq alındı edildi!`, "success");
+        } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
     }
 });
 
-// TOPLU SİLMƏƏ
+// TOPLU SİLMƏ (YENİLƏNDİ)
 bulkDeleteBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
-    if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul layihədən TAMAMİLƏ silinsin?`)) {
+    const count = selectedOrderIds.size;
+    if (confirm(`Seçilmiş ${count} məhsul layihədən TAMAMİLƏ silinsin?`)) {
         const batch = writeBatch(db); selectedOrderIds.forEach(id => { batch.delete(doc(db, "orders", id)); });
-        try { await batch.commit(); exitBulkSelectMode(); } catch (error) { alert("Xəta: " + error.message); }
+        try { 
+            await batch.commit(); 
+            exitBulkSelectMode(); 
+            showNotification(listNotifyBox, `🗑️ ${count} ədəd məhsul bazadan tamamilə silindi!`, "success");
+        } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
     }
 });
 
-// 🔍 AXTARIŞ INPUTUNU DİNLƏYİRİK
+// AXTARIŞ INPUTUNU DİNLƏYİRK
 searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value.toLowerCase().trim(); // Yazılan mətni kiçik hərflərə çeviririk
-    renderOrders(); // Hər hərf yazılanda siyahını yenidən rəndərləyirik
+    searchQuery = e.target.value.toLowerCase().trim();
+    renderOrders();
 });
 
-// SİFARİŞLƏRİ SİYAHILAMAQ (YENİLƏNDİ)
+// SİFARİŞLƏRİ SİYAHILAMAQ
 function renderOrders() {
     orderListContainer.innerHTML = "";
     
-    // 🛠️ HƏM ŞİRKƏTƏ, HƏM DƏ AXTARIŞA GÖRƏ EYNİ ANDA FİLTRLƏMƏ
     const filteredOrders = allOrders.filter(order => {
-        // 1. Şirkət filtri yoxlanışı
         let matchCompany = true;
         if (currentFilter !== "all") {
             if (currentFilter === "none") matchCompany = !order.company;
             else matchCompany = (order.company === currentFilter);
         }
-
-        // 2. Axtarış sözü yoxlanışı
         let matchSearch = true;
         if (searchQuery !== "") {
             matchSearch = order.name.toLowerCase().includes(searchQuery);
         }
-
-        return matchCompany && matchSearch; // Hər iki şərt düzgündürsə məhsul siyahıda qalır
+        return matchCompany && matchSearch;
     });
 
     if (filteredOrders.length === 0) {
@@ -240,14 +279,17 @@ function renderOrders() {
         });
     });
 
-    // SAĞDAKI QUŞ İŞARƏSİ
+    // SAĞDAKI QUŞ İŞARƏSİ (YENİLƏNDİ)
     document.querySelectorAll('.quick-del').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const orderId = e.target.getAttribute('data-id');
             const foundOrder = allOrders.find(o => o.id === orderId);
             if (foundOrder && foundOrder.status === "passive") return;
-            if (confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { await updateDoc(doc(db, "orders", orderId), { status: "passive" }); }
+            if (confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { 
+                await updateDoc(doc(db, "orders", orderId), { status: "passive" }); 
+                showNotification(listNotifyBox, `✓ ${foundOrder.name} alındı olaraq qeyd edildi!`, "success");
+            }
         });
     });
 }

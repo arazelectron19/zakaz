@@ -624,3 +624,33 @@ input:focus, select:focus {
 #searchInput::placeholder {
     color: #777;
 }
+
+/* Blok daxili bildiriş mesajları */
+.inline-notify {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    animation: fadeInNotify 0.3s ease;
+}
+
+/* Xəta və Uğur rəngləri */
+.inline-notify.success {
+    background-color: rgba(46, 125, 50, 0.15);
+    border: 1px solid #2e7d32;
+    color: #4caf50;
+}
+
+.inline-notify.error {
+    background-color: rgba(198, 40, 40, 0.15);
+    border: 1px solid #c62828;
+    color: #ef5350;
+}
+
+@keyframes fadeInNotify {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
