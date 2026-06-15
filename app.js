@@ -102,7 +102,7 @@ productImageInput.addEventListener('change', (e) => { handleFileSelection(e.targ
 cameraImageInput.addEventListener('change', (e) => { handleFileSelection(e.target.files[0]); productImageInput.value = ""; });
 clearImageBtn.addEventListener('click', () => { productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none'; });
 
-// SİFARİŞİ GÖNDƏRMƏK (YENİLƏNDİ)
+// SİFARİŞİ GÖNDƏRMƏK
 saveBtn.addEventListener('click', async () => {
     const name = productNameInput.value.trim(); const count = productCountInput.value.trim(); const company = companySelect.value;
     
@@ -156,12 +156,16 @@ modalSaveEditBtn.addEventListener('click', async () => {
     } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
 });
 
+// MODAL DAXİLİNDƏKİ "ALINDI" DÜYMƏSİ (İCAZƏSİZ - BİRBAŞA İCRA)
 modalDeleteBtn.addEventListener('click', async () => { 
-    if (activeOrderId && confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { 
+    if (activeOrderId) { 
         const idToUpdate = activeOrderId; 
+        const foundOrder = allOrders.find(o => o.id === idToUpdate);
+        const nameText = foundOrder ? foundOrder.name : "Məhsul";
+        
         closeModal(); 
         await updateDoc(doc(db, "orders", idToUpdate), { status: "passive" }); 
-        showNotification(listNotifyBox, "✓ Məhsul alındı olaraq təsdiqləndi!", "success");
+        showNotification(listNotifyBox, `✓ ${nameText} alındı olaraq təsdiqləndi!`, "success");
     } 
 });
 
@@ -172,35 +176,41 @@ function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { se
 function updateBulkPanelUI() { bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; }
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
 
-// TOPLU ALINDI REJİMİ (YENİLƏNDİ)
+// TOPLU ALINDI REJİMİ (İCAZƏSİZ - BİRBAŞA İCRA)
 bulkMarkPassiveBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     const count = selectedOrderIds.size;
-    if (confirm(`Seçilmiş ${count} məhsul alındı olaraq təsdiqlənsin?`)) {
-        const batch = writeBatch(db); selectedOrderIds.forEach(id => { batch.update(doc(db, "orders", id), { status: "passive" }); });
-        try { 
-            await batch.commit(); 
-            exitBulkSelectMode(); 
-            showNotification(listNotifyBox, `🟢 ${count} ədəd məhsul toplu olaraq alındı edildi!`, "success");
-        } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
+    
+    const batch = writeBatch(db); 
+    selectedOrderIds.forEach(id => { batch.update(doc(db, "orders", id), { status: "passive" }); });
+    
+    try { 
+        await batch.commit(); 
+        exitBulkSelectMode(); 
+        showNotification(listNotifyBox, `🟢 ${count} ədəd məhsul toplu olaraq alındı edildi!`, "success");
+    } catch (error) { 
+        showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); 
     }
 });
 
-// TOPLU SİLMƏ (YENİLƏNDİ)
+// TOPLU SİLMƏ REJİMİ (İCAZƏSİZ - BİRBAŞA İCRA)
 bulkDeleteBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     const count = selectedOrderIds.size;
-    if (confirm(`Seçilmiş ${count} məhsul layihədən TAMAMİLƏ silinsin?`)) {
-        const batch = writeBatch(db); selectedOrderIds.forEach(id => { batch.delete(doc(db, "orders", id)); });
-        try { 
-            await batch.commit(); 
-            exitBulkSelectMode(); 
-            showNotification(listNotifyBox, `🗑️ ${count} ədəd məhsul bazadan tamamilə silindi!`, "success");
-        } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
+    
+    const batch = writeBatch(db); 
+    selectedOrderIds.forEach(id => { batch.delete(doc(db, "orders", id)); });
+    
+    try { 
+        await batch.commit(); 
+        exitBulkSelectMode(); 
+        showNotification(listNotifyBox, `🗑️ ${count} ədəd məhsul bazadan tamamilə silindi!`, "success");
+    } catch (error) { 
+        showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); 
     }
 });
 
-// AXTARIŞ INPUTUNU DİNLƏYİRK
+// AXTARIŞ INPUTUNU DİNLƏYİRİK
 searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
     renderOrders();
@@ -279,17 +289,17 @@ function renderOrders() {
         });
     });
 
-    // SAĞDAKI QUŞ İŞARƏSİ (YENİLƏNDİ)
+    // SAĞDAKI QUŞ İŞARƏSİ (İCAZƏSİZ - BİRBAŞA İCRA)
     document.querySelectorAll('.quick-del').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const orderId = e.target.getAttribute('data-id');
             const foundOrder = allOrders.find(o => o.id === orderId);
+            
             if (foundOrder && foundOrder.status === "passive") return;
-            if (confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { 
-                await updateDoc(doc(db, "orders", orderId), { status: "passive" }); 
-                showNotification(listNotifyBox, `✓ ${foundOrder.name} alındı olaraq qeyd edildi!`, "success");
-            }
+            
+            await updateDoc(doc(db, "orders", orderId), { status: "passive" }); 
+            showNotification(listNotifyBox, `✓ ${foundOrder.name} alındı olaraq qeyd edildi!`, "success");
         });
     });
 }
