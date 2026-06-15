@@ -561,3 +561,36 @@ input:focus, select:focus {
     color: #fff !important;
     cursor: not-allowed;
 }
+
+/* ... Əvvəlki CSS kodları eynilə qalır, bunu sonuna artırın ... */
+
+.bulk-btn-passive {
+    background-color: #2e7d32;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.bulk-btn-passive:hover {
+    background-color: #1b5e20;
+}
+
+/* Panel düymələrinin mobildə sıxışmaması üçün kiçik nizamlanma */
+.bulk-panel {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start !important;
+}
+
+@media(min-width: 380px) {
+    .bulk-panel {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center !important;
+    }
+}

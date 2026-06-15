@@ -53,10 +53,12 @@ const modalDeleteBtn = document.getElementById('modalDeleteBtn');
 const modalCancelEditBtn = document.getElementById('modalCancelEditBtn');
 const modalSaveEditBtn = document.getElementById('modalSaveEditBtn');
 
+// TOPLU SEÇİM ELEMENTLƏRİ
 const bulkSelectPanel = document.getElementById('bulkSelectPanel');
 const bulkSelectCount = document.getElementById('bulkSelectCount');
 const bulkCancelBtn = document.getElementById('bulkCancelBtn');
 const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+const bulkMarkPassiveBtn = document.getElementById('bulkMarkPassiveBtn'); // 🟢 Yeni düymə
 
 let selectedFile = null;
 let currentFilter = "all";
@@ -84,35 +86,15 @@ clearImageBtn.addEventListener('click', () => { productImageInput.value = ""; ca
 
 // SİFARİŞİ GÖNDƏRMƏK
 saveBtn.addEventListener('click', async () => {
-    const name = productNameInput.value.trim();
-    const count = productCountInput.value.trim(); // Sayı mütləq olaraq yoxlamırıq
-    const company = companySelect.value;
-
-    // 🛠️ YALNIZ MƏHSUL ADI MƏCBURİDİR
-    if (!name) {
-        alert("Zəhmət olmasa məhsul adını daxil edin!");
-        return;
-    }
-
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Göndərilir...";
-    let imageUrl = "";
-
+    const name = productNameInput.value.trim(); const count = productCountInput.value.trim(); const company = companySelect.value;
+    if (!name) { alert("Zəhmət olmasa məhsul adını daxil edin!"); return; }
+    saveBtn.disabled = true; saveBtn.textContent = "Göndərilir..."; let imageUrl = "";
     if (selectedFile) {
         const formData = new FormData(); formData.append("image", selectedFile);
         try { const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData }); const result = await response.json(); if (result.success) imageUrl = result.data.url; } catch (error) { console.error("Yükləmə xətası:", error); }
     }
-    
     try {
-        await addDoc(collection(db, "orders"), { 
-            name: name, 
-            // 🛠️ Say daxil edilibsə rəqəmə çevir, edilməyibsə null (boş) saxla
-            count: count ? parseInt(count) : null, 
-            company: company, 
-            image: imageUrl, 
-            status: "active",
-            timestamp: new Date().getTime() 
-        });
+        await addDoc(collection(db, "orders"), { name: name, count: count ? parseInt(count) : null, company: company, image: imageUrl, status: "active", timestamp: new Date().getTime() });
         productNameInput.value = ""; productCountInput.value = ""; companySelect.value = ""; productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none';
         alert("Sifariş uğurla yazıldı!");
     } catch (error) { alert("Xəta: " + error.message); } finally { saveBtn.disabled = false; saveBtn.textContent = "Sifarişi Göndər"; }
@@ -122,27 +104,11 @@ saveBtn.addEventListener('click', async () => {
 function openModal(order) {
     activeOrderId = order.id; switchToViewMode();
     modalProductName.textContent = order.name;
-    
-    // 🛠️ Modalda Sayı yoxlayırıq
-    if (order.count !== null && order.count !== undefined) {
-        modalProductCount.textContent = order.count + " ədəd";
-        modalProductCount.style.color = "#fff";
-    } else {
-        modalProductCount.textContent = "Tələb olunmayıb";
-        modalProductCount.style.color = "#888"; // Solğun rəngdə görünsün
-    }
-    
-    if(order.status === "passive") {
-        modalProductName.innerHTML = `${order.name} <span class="alindi-badge">✓ Alındı</span>`;
-    }
-
+    if (order.count !== null && order.count !== undefined) { modalProductCount.textContent = order.count + " ədəd"; modalProductCount.style.color = "#fff"; } else { modalProductCount.textContent = "Tələb olunmayıb"; modalProductCount.style.color = "#888"; }
+    if(order.status === "passive") { modalProductName.innerHTML = `${order.name} <span class="alindi-badge">✓ Alındı</span>`; }
     if (order.company) { modalCompanyBadge.textContent = order.company; modalCompanyBadge.style.display = "inline-block"; modalCompanyBadge.className = "company-badge"; } else { modalCompanyBadge.textContent = "Seçilməyib"; modalCompanyBadge.style.backgroundColor = "#555"; }
     if (order.image) { modalImageContainer.innerHTML = `<img src="${order.image}" alt="Böyük Şəkil">`; } else { modalImageContainer.innerHTML = `<div style="width:100%; height:120px; background:#121212; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:3rem;">📦</div>`; }
-    
-    editProductName.value = order.name;
-    editProductCount.value = (order.count !== null && order.count !== undefined) ? order.count : "";
-    editCompanySelect.value = order.company || "";
-    
+    editProductName.value = order.name; editProductCount.value = (order.count !== null && order.count !== undefined) ? order.count : ""; editCompanySelect.value = order.company || "";
     detailsModal.classList.add('open');
 }
 function switchToEditMode() { modalTitle.textContent = "✏️ Sifarişi Redaktə Et"; modalViewMode.style.display = "none"; modalEditMode.style.display = "flex"; viewModeButtons.style.display = "none"; editModeButtons.style.display = "flex"; }
@@ -155,33 +121,43 @@ closeModalBtn.addEventListener('click', closeModal);
 detailsModal.addEventListener('click', (e) => { if(e.target === detailsModal) closeModal(); });
 
 modalSaveEditBtn.addEventListener('click', async () => {
-    const updatedName = editProductName.value.trim(); 
-    const updatedCount = editProductCount.value.trim(); 
-    const updatedCompany = editCompanySelect.value;
-
+    const updatedName = editProductName.value.trim(); const updatedCount = editProductCount.value.trim(); const updatedCompany = editCompanySelect.value;
     if (!updatedName) { alert("Məhsul adı boş buraxıla bilməz!"); return; }
     modalSaveEditBtn.disabled = true; modalSaveEditBtn.textContent = "Yenilənir...";
-    
-    try { 
-        await updateDoc(doc(db, "orders", activeOrderId), { 
-            name: updatedName, 
-            // Redaktədə də sayı boş qoya bilsin deyə yoxlayırıq
-            count: updatedCount ? parseInt(updatedCount) : null, 
-            company: updatedCompany 
-        }); 
-        closeModal(); 
-    } catch (error) { alert("Xəta: " + error.message); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
+    try { await updateDoc(doc(db, "orders", activeOrderId), { name: updatedName, count: updatedCount ? parseInt(updatedCount) : null, company: updatedCompany }); closeModal(); } catch (error) { alert("Xəta: " + error.message); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
 });
 
 modalDeleteBtn.addEventListener('click', async () => { if (activeOrderId && confirm("Bu məhsul alındı olaraq qeyd edilsin?")) { const idToUpdate = activeOrderId; closeModal(); await updateDoc(doc(db, "orders", idToUpdate), { status: "passive" }); } });
 
-// TOPLU SEÇİM FUNKSİYALARI
+// TOPLU SEÇİM REJİMİ
 function enterBulkSelectMode(firstOrderId) { isBulkSelectMode = true; selectedOrderIds.clear(); if (firstOrderId) selectedOrderIds.add(firstOrderId); bulkSelectPanel.style.display = "flex"; updateBulkPanelUI(); renderOrders(); }
 function exitBulkSelectMode() { isBulkSelectMode = false; selectedOrderIds.clear(); bulkSelectPanel.style.display = "none"; renderOrders(); }
 function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { selectedOrderIds.delete(orderId); } else { selectedOrderIds.add(orderId); } if (selectedOrderIds.size === 0) { exitBulkSelectMode(); } else { updateBulkPanelUI(); const targetCard = document.querySelector(`.order-item[data-id="${orderId}"]`); if (targetCard) targetCard.classList.toggle('checked'); } }
 function updateBulkPanelUI() { bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; }
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
 
+// 🛠️ 1. TOPLU OLARAQ "ALINDI" (PASSİV) STATUSUNA KEÇİRMƏK
+bulkMarkPassiveBtn.addEventListener('click', async () => {
+    if (selectedOrderIds.size === 0) return;
+    
+    if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul alındı olaraq təsdiqlənsin?`)) {
+        const batch = writeBatch(db); // Toplu əməliyyat
+        
+        selectedOrderIds.forEach(id => {
+            const docRef = doc(db, "orders", id);
+            batch.update(docRef, { status: "passive" }); // Statusu dəyişirik (silmirik)
+        });
+        
+        try {
+            await batch.commit(); // Hamısını eyni andada yeniləyir
+            exitBulkSelectMode();
+        } catch (error) {
+            alert("Toplu təsdiq zamanı xəta oldu: " + error.message);
+        }
+    }
+});
+
+// 2. TOPLU TAMAMİLƏ SİLMƏK (BÜTÜNLÜKLƏ BAZADAN SİLİR)
 bulkDeleteBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul layihədən TAMAMİLƏ silinsin?`)) {
@@ -219,16 +195,10 @@ function renderOrders() {
 
         const companyBadge = order.company ? `<span class="company-badge">${order.company}</span>` : '';
         const alindiText = (order.status === "passive") ? `<span class="alindi-badge">✓ Alındı</span>` : '';
-
-        // 🛠️ Siyahıda Sayı yoxlayırıq
-        let countText = (order.count !== null && order.count !== undefined) 
-            ? `Sayı: ${order.count} ədəd` 
-            : `<span style="color: #777; font-style: italic;">Tələb olunmayıb</span>`;
+        let countText = (order.count !== null && order.count !== undefined) ? `Sayı: ${order.count} ədəd` : `<span style="color: #777; font-style: italic;">Tələb olunmayıb</span>`;
 
         let doneClass = (order.status === "passive") ? "done" : "";
-        const deleteButtonHtml = isBulkSelectMode 
-            ? '' 
-            : `<button class="delete-btn quick-del ${doneClass}" data-id="${order.id}">✓</button>`;
+        const deleteButtonHtml = isBulkSelectMode ? '' : `<button class="delete-btn quick-del ${doneClass}" data-id="${order.id}">✓</button>`;
 
         itemDiv.innerHTML = `
             <div class="order-clickable-area">
@@ -261,7 +231,7 @@ function renderOrders() {
         });
     });
 
-    // SAĞDAKI QUŞ İŞARƏSİ
+    // SAĞDAKI TEKLI QUŞ İŞARƏSİ
     document.querySelectorAll('.quick-del').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
