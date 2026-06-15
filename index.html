@@ -53,6 +53,10 @@
 
     <div id="page-list" class="card-section page">
             <h2>📋 Aktiv Sifarişlər</h2>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Axtar">
+            </div>
             
             <div class="filter-tabs">
                 <button class="filter-btn active" data-filter="all">Hamısı</button>
@@ -63,12 +67,12 @@
                 <button class="filter-btn" data-filter="none">Şirkətsiz</button>
             </div>
 
-           <div id="bulkSelectPanel" class="bulk-panel" style="display: none;">
+            <div id="bulkSelectPanel" class="bulk-panel" style="display: none;">
                 <span id="bulkSelectCount">0 məhsul seçildi</span>
                 <div class="bulk-buttons">
                     <button id="bulkCancelBtn" class="bulk-btn-cancel">Ləğv Et</button>
                     <button id="bulkMarkPassiveBtn" class="bulk-btn-passive">✓ Alındı Et</button>
-                    <button id="bulkDeleteBtn" class="bulk-btn-delete">🗑️ Seçilənləri Sil</button>
+                    <button id="bulkDeleteBtn" class="bulk-btn-delete">🗑️ Tam Sil</button>
                 </div>
             </div>
 

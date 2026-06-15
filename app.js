@@ -27,6 +27,7 @@ const fileStatusBox = document.getElementById('fileStatusBox');
 const clearImageBtn = document.getElementById('clearImageBtn');
 const saveBtn = document.getElementById('saveBtn');
 const orderListContainer = document.getElementById('orderList');
+const searchInput = document.getElementById('searchInput'); // 🔍 Yeni axtarış elementi
 
 const navCreate = document.getElementById('nav-create');
 const navList = document.getElementById('nav-list');
@@ -58,10 +59,11 @@ const bulkSelectPanel = document.getElementById('bulkSelectPanel');
 const bulkSelectCount = document.getElementById('bulkSelectCount');
 const bulkCancelBtn = document.getElementById('bulkCancelBtn');
 const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-const bulkMarkPassiveBtn = document.getElementById('bulkMarkPassiveBtn'); // 🟢 Yeni düymə
+const bulkMarkPassiveBtn = document.getElementById('bulkMarkPassiveBtn');
 
 let selectedFile = null;
 let currentFilter = "all";
+let searchQuery = ""; // 🔍 Axtarış mətni üçün dəyişən
 let allOrders = [];
 let activeOrderId = null; 
 
@@ -136,28 +138,16 @@ function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { se
 function updateBulkPanelUI() { bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; }
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
 
-// 🛠️ 1. TOPLU OLARAQ "ALINDI" (PASSİV) STATUSUNA KEÇİRMƏK
+// TOPLU ALINDI REJİMİ
 bulkMarkPassiveBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
-    
     if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul alındı olaraq təsdiqlənsin?`)) {
-        const batch = writeBatch(db); // Toplu əməliyyat
-        
-        selectedOrderIds.forEach(id => {
-            const docRef = doc(db, "orders", id);
-            batch.update(docRef, { status: "passive" }); // Statusu dəyişirik (silmirik)
-        });
-        
-        try {
-            await batch.commit(); // Hamısını eyni andada yeniləyir
-            exitBulkSelectMode();
-        } catch (error) {
-            alert("Toplu təsdiq zamanı xəta oldu: " + error.message);
-        }
+        const batch = writeBatch(db); selectedOrderIds.forEach(id => { batch.update(doc(db, "orders", id), { status: "passive" }); });
+        try { await batch.commit(); exitBulkSelectMode(); } catch (error) { alert("Xəta: " + error.message); }
     }
 });
 
-// 2. TOPLU TAMAMİLƏ SİLMƏK (BÜTÜNLÜKLƏ BAZADAN SİLİR)
+// TOPLU SİLMƏƏ
 bulkDeleteBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     if (confirm(`Seçilmiş ${selectedOrderIds.size} məhsul layihədən TAMAMİLƏ silinsin?`)) {
@@ -166,17 +156,36 @@ bulkDeleteBtn.addEventListener('click', async () => {
     }
 });
 
-// SİFARİŞLƏRİ SİYAHILAMAQ
+// 🔍 AXTARIŞ INPUTUNU DİNLƏYİRİK
+searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase().trim(); // Yazılan mətni kiçik hərflərə çeviririk
+    renderOrders(); // Hər hərf yazılanda siyahını yenidən rəndərləyirik
+});
+
+// SİFARİŞLƏRİ SİYAHILAMAQ (YENİLƏNDİ)
 function renderOrders() {
     orderListContainer.innerHTML = "";
+    
+    // 🛠️ HƏM ŞİRKƏTƏ, HƏM DƏ AXTARIŞA GÖRƏ EYNİ ANDA FİLTRLƏMƏ
     const filteredOrders = allOrders.filter(order => {
-        if (currentFilter === "all") return true;
-        if (currentFilter === "none") return !order.company;
-        return order.company === currentFilter;
+        // 1. Şirkət filtri yoxlanışı
+        let matchCompany = true;
+        if (currentFilter !== "all") {
+            if (currentFilter === "none") matchCompany = !order.company;
+            else matchCompany = (order.company === currentFilter);
+        }
+
+        // 2. Axtarış sözü yoxlanışı
+        let matchSearch = true;
+        if (searchQuery !== "") {
+            matchSearch = order.name.toLowerCase().includes(searchQuery);
+        }
+
+        return matchCompany && matchSearch; // Hər iki şərt düzgündürsə məhsul siyahıda qalır
     });
 
     if (filteredOrders.length === 0) {
-        orderListContainer.innerHTML = '<p class="empty-text">Bu bölmədə aktiv sifariş yoxdur.</p>';
+        orderListContainer.innerHTML = '<p class="empty-text">Axtarışa uyğun aktiv sifariş tapılmadı.</p>';
         return;
     }
 
@@ -231,7 +240,7 @@ function renderOrders() {
         });
     });
 
-    // SAĞDAKI TEKLI QUŞ İŞARƏSİ
+    // SAĞDAKI QUŞ İŞARƏSİ
     document.querySelectorAll('.quick-del').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
