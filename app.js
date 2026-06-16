@@ -64,6 +64,7 @@ const bulkSelectCount = document.getElementById('bulkSelectCount');
 const bulkCancelBtn = document.getElementById('bulkCancelBtn');
 const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
 const bulkMarkPassiveBtn = document.getElementById('bulkMarkPassiveBtn');
+const bulkSelectAllBtn = document.getElementById('bulkSelectAllBtn');
 
 let selectedFile = null;
 let currentFilter = "all";
@@ -173,8 +174,73 @@ modalDeleteBtn.addEventListener('click', async () => {
 function enterBulkSelectMode(firstOrderId) { isBulkSelectMode = true; selectedOrderIds.clear(); if (firstOrderId) selectedOrderIds.add(firstOrderId); bulkSelectPanel.style.display = "flex"; updateBulkPanelUI(); renderOrders(); }
 function exitBulkSelectMode() { isBulkSelectMode = false; selectedOrderIds.clear(); bulkSelectPanel.style.display = "none"; renderOrders(); }
 function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { selectedOrderIds.delete(orderId); } else { selectedOrderIds.add(orderId); } if (selectedOrderIds.size === 0) { exitBulkSelectMode(); } else { updateBulkPanelUI(); const targetCard = document.querySelector(`.order-item[data-id="${orderId}"]`); if (targetCard) targetCard.classList.toggle('checked'); } }
-function updateBulkPanelUI() { bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; }
+
+// 🌐 YENİLƏNDİ: DÜYMƏLƏRİN FORMASINI QORUYAN VƏ YAZINI IDARƏ EDƏN FUNKSİYA
+function updateBulkPanelUI() { 
+    bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; 
+
+    // Hazırda ekranda görünən uyğun malları tapırıq
+    const visibleOrders = allOrders.filter(order => {
+        let matchCompany = true;
+        if (currentFilter !== "all") {
+            if (currentFilter === "none") matchCompany = !order.company;
+            else matchCompany = (order.company === currentFilter);
+        }
+        let matchSearch = searchQuery === "" || order.name.toLowerCase().includes(searchQuery);
+        return matchCompany && matchSearch;
+    });
+
+    // "Hamısını Seç" düyməsinin formasını itirmədən sadəcə stilini dəyişirik
+    if (visibleOrders.length > 0 && visibleOrders.every(order => selectedOrderIds.has(order.id))) {
+        bulkSelectAllBtn.textContent = "❌ Seçimi Təmizlə";
+        bulkSelectAllBtn.style.backgroundColor = "#e0a800"; 
+    } else {
+        bulkSelectAllBtn.textContent = "🌐 Hamısını Seç";
+        bulkSelectAllBtn.style.backgroundColor = "#007bff"; 
+    }
+
+    // Digər düymələrin formalarının (padding və s.) itməməsi üçün standart stillərini qoruyuruq
+    bulkCancelBtn.style.padding = "6px 12px";
+    bulkCancelBtn.style.borderRadius = "6px";
+    
+    bulkMarkPassiveBtn.style.padding = "6px 12px";
+    bulkMarkPassiveBtn.style.borderRadius = "6px";
+    
+    bulkDeleteBtn.style.padding = "6px 12px";
+    bulkDeleteBtn.style.borderRadius = "6px";
+}
+
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
+
+// 🌐 YENİ: "HAMISINI SEÇ" DÜYMƏSİNİN KLİKLƏNMƏ HADİSƏSİ
+bulkSelectAllBtn.addEventListener('click', () => {
+    const visibleOrders = allOrders.filter(order => {
+        let matchCompany = true;
+        if (currentFilter !== "all") {
+            if (currentFilter === "none") matchCompany = !order.company;
+            else matchCompany = (order.company === currentFilter);
+        }
+        let matchSearch = searchQuery === "" || order.name.toLowerCase().includes(searchQuery);
+        return matchCompany && matchSearch;
+    });
+
+    const isAllSelected = visibleOrders.length > 0 && visibleOrders.every(order => selectedOrderIds.has(order.id));
+
+    if (isAllSelected) {
+        // Əgər hamısı seçilidirsə, seçimdən çıxarırıq
+        visibleOrders.forEach(order => selectedOrderIds.delete(order.id));
+        if (selectedOrderIds.size === 0) {
+            exitBulkSelectMode();
+            return;
+        }
+    } else {
+        // Seçilməyənləri siyahıya əlavə edirik
+        visibleOrders.forEach(order => selectedOrderIds.add(order.id));
+    }
+
+    updateBulkPanelUI();
+    renderOrders();
+});
 
 // TOPLU ALINDI REJİMİ (İCAZƏSİZ - BİRBAŞA İCRA)
 bulkMarkPassiveBtn.addEventListener('click', async () => {
@@ -214,6 +280,7 @@ bulkDeleteBtn.addEventListener('click', async () => {
 searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
     renderOrders();
+    if (isBulkSelectMode) updateBulkPanelUI(); // Axtarış edərkən düymə yazısını yenilə
 });
 
 // SİFARİŞLƏRİ SİYAHILAMAQ
@@ -310,6 +377,7 @@ onSnapshot(q, (snapshot) => {
     allOrders = [];
     snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); });
     renderOrders();
+    if (isBulkSelectMode) updateBulkPanelUI(); // Canlı məlumat dəyişəndə düyməni yenilə
 });
 
 // FİLTRLƏR
@@ -323,7 +391,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 // 🔐 PİN KOD LOGİKASI
-const CORRECT_PIN = "7388"; // Mağaza üçün şifrəni buradan dəyişə bilərsən!
+const CORRECT_PIN = "7388"; 
 let enteredPin = "";
 
 const pinModal = document.getElementById('pinModal');
@@ -355,19 +423,15 @@ document.querySelectorAll('.pin-btn').forEach(btn => {
         if (enteredPin.length === 4) {
             setTimeout(() => {
                 if (enteredPin === CORRECT_PIN) {
-                    pinModal.style.display = "none"; // Giriş uğurludur, ekranı bağla
+                    pinModal.style.display = "none"; 
                     pinError.style.display = "none";
                     enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
-                    
-                    // Giriş uğurlu olanda siyahı bölməsində bildiriş çıxsın
                     showNotification(listNotifyBox, "🔒 Təhlükəsiz giriş təmin olundu!", "success");
                 } else {
-                    pinError.style.display = "block"; // Səhv mesajı
+                    pinError.style.display = "block"; 
                     enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
-                    
-                    // Ekranı yüngülcə titrətmək effektini verə bilərsən
                     navigator.vibrate ? navigator.vibrate(200) : null; 
                 }
             }, 150);
@@ -375,33 +439,27 @@ document.querySelectorAll('.pin-btn').forEach(btn => {
     });
 });
 
-////////////////////////////////////keybord/////////////////////////////////////
 // ⌨️ KOMPÜTERİN FİZİKİ KLAVİATURASINI DİNLƏMƏK
 window.addEventListener('keydown', (e) => {
-    // Əgər PİN kod ekranı hazırda açıq deyilsə, klaviaturanı dinləmə, boş ver
     if (pinModal.style.display === "none") return;
 
     let keyVal = "";
 
-    // Basılan düyməni yoxlayırıq
     if (e.key >= "0" && e.key <= "9") {
-        keyVal = e.key; // 0-9 arası rəqəmlər
+        keyVal = e.key; 
     } else if (e.key === "Backspace") {
-        keyVal = "back"; // Silmə düyməsi (⌫)
+        keyVal = "back"; 
     } else if (e.key === "Escape" || e.key.toLowerCase() === "c") {
-        keyVal = "C"; // Təmizləmə düyməsi (C)
+        keyVal = "C"; 
     }
 
-    // Əgər keçərli bir düymə basılıbsa, eyni düymə kliklənmə funksiyasını çağırırıq
     if (keyVal !== "") {
-        // Ekrandakı uyğun düyməni tapıb vizual olaraq basılma effekti veririk (istəyə bağlı)
         const targetBtn = document.querySelector(`.pin-btn[data-val="${keyVal}"]`);
         if (targetBtn) {
             targetBtn.classList.add('active-effect');
             setTimeout(() => targetBtn.classList.remove('active-effect'), 100);
         }
 
-        // PİN kodun məntiqi (rəqəm əlavə etmə və silmə)
         if (keyVal === "C") {
             enteredPin = "";
         } else if (keyVal === "back") {
@@ -410,7 +468,6 @@ window.addEventListener('keydown', (e) => {
             enteredPin += keyVal;
         }
 
-        // Nöqtələri rəngləmək
         dots.forEach((dot, index) => {
             if (index < enteredPin.length) {
                 dot.classList.add('active');
@@ -419,7 +476,6 @@ window.addEventListener('keydown', (e) => {
             }
         });
 
-        // 4 rəqəm tamamlananda şifrəni yoxlamaq
         if (enteredPin.length === 4) {
             setTimeout(() => {
                 if (enteredPin === CORRECT_PIN) {

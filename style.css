@@ -753,3 +753,17 @@ input:focus, select:focus {
         text-align: center;
     }
 }
+
+.bulk-btn.select-all-btn {
+    background-color: #007bff !important;
+    color: white !important;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.bulk-btn.select-all-btn:hover {
+    background-color: #0056b3 !important;
+}

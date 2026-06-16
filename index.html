@@ -99,12 +99,14 @@
                 <button class="filter-btn" data-filter="none">Şirkətsiz</button>
             </div>
 
-            <div id="bulkSelectPanel" class="bulk-panel" style="display: none;">
-                <span id="bulkSelectCount">0 məhsul seçildi</span>
-                <div class="bulk-buttons">
-                    <button id="bulkCancelBtn" class="bulk-btn-cancel">Ləğv Et</button>
-                    <button id="bulkMarkPassiveBtn" class="bulk-btn-passive">✓ Alındı Et</button>
-                    <button id="bulkDeleteBtn" class="bulk-btn-delete">🗑️ Tam Sil</button>
+            <div id="bulkSelectPanel" style="display: none; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border-radius: 8px; flex-wrap: wrap; border: 1px solid #333;">
+                <span id="bulkSelectCount" style="color: #fff; font-weight: bold; font-size: 0.95rem;">0 məhsul seçildi</span>
+                
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <button id="bulkSelectAllBtn" class="bulk-btn" style="background-color: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">🌐 Hamısını Seç</button>
+                    <button id="bulkCancelBtn" class="bulk-btn" style="background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.85rem;">Ləğv Et</button>
+                    <button id="bulkMarkPassiveBtn" class="bulk-btn" style="background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">✓ Alındı Et</button>
+                    <button id="bulkDeleteBtn" class="bulk-btn" style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">🗑️ Tam Sil</button>
                 </div>
             </div>
 
