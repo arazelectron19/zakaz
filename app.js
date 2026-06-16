@@ -19,6 +19,7 @@ const IMGBB_API_KEY = "4051df84ed1e0dbe5f13f79db310ca45";
 // HTML Elementləri
 const productNameInput = document.getElementById('productName');
 const productCountInput = document.getElementById('productCount');
+const productNoteInput = document.getElementById('productNote'); // 📝 YENİ ELEMENT
 const companySelect = document.getElementById('companySelect');
 const productImageInput = document.getElementById('productImage');
 const cameraImageInput = document.getElementById('cameraImage');
@@ -50,8 +51,10 @@ const editModeButtons = document.getElementById('editModeButtons');
 const modalProductName = document.getElementById('modalProductName');
 const modalCompanyBadge = document.getElementById('modalCompanyBadge');
 const modalProductCount = document.getElementById('modalProductCount');
+const modalProductNote = document.getElementById('modalProductNote'); // 📝 YENİ ELEMENT
 const editProductName = document.getElementById('editProductName');
 const editProductCount = document.getElementById('editProductCount');
+const editProductNote = document.getElementById('editProductNote'); // 📝 YENİ ELEMENT
 const editCompanySelect = document.getElementById('editCompanySelect');
 const modalEditBtn = document.getElementById('modalEditBtn');
 const modalDeleteBtn = document.getElementById('modalDeleteBtn');
@@ -75,7 +78,7 @@ let activeOrderId = null;
 let isBulkSelectMode = false;
 let selectedOrderIds = new Set();
 
-// 🕒 YENİ: TARİX VƏ SAATI PEŞƏKAR FORMATLAYAN KÖMƏKÇİ FUNKSİYA
+// 🕒 TARİX VƏ SAATI PEŞƏKAR FORMATLAYAN KÖMƏKÇİ FUNKSİYA
 function formatCustomDate(timestampValue) {
     if (!timestampValue) return "";
     
@@ -102,10 +105,9 @@ function formatCustomDate(timestampValue) {
 // 🔔 PEŞƏKAR BLOK DAXİLİ BİLDİRİŞ FUNKSİYASI
 function showNotification(targetBox, text, type) {
     targetBox.textContent = text;
-    targetBox.className = `inline-notify ${type}`; // type: 'success' və ya 'error'
+    targetBox.className = `inline-notify ${type}`; 
     targetBox.style.display = "block";
     
-    // 3 saniyə sonra səliqəli itir
     setTimeout(() => {
         targetBox.style.display = "none";
     }, 3000);
@@ -129,7 +131,10 @@ clearImageBtn.addEventListener('click', () => { productImageInput.value = ""; ca
 
 // SİFARİŞİ GÖNDƏRMƏK
 saveBtn.addEventListener('click', async () => {
-    const name = productNameInput.value.trim(); const count = productCountInput.value.trim(); const company = companySelect.value;
+    const name = productNameInput.value.trim(); 
+    const count = productCountInput.value.trim(); 
+    const note = productNoteInput ? productNoteInput.value.trim() : ""; // 📝 Qeyd dəyərini alırıq
+    const company = companySelect.value;
     
     if (!name) { 
         showNotification(createNotifyBox, "⚠️ Zəhmət olmasa məhsul adını daxil edin!", "error"); 
@@ -142,8 +147,17 @@ saveBtn.addEventListener('click', async () => {
         try { const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData }); const result = await response.json(); if (result.success) imageUrl = result.data.url; } catch (error) { console.error("Yükləmə xətası:", error); }
     }
     try {
-        await addDoc(collection(db, "orders"), { name: name, count: count ? parseInt(count) : null, company: company, image: imageUrl, status: "active", timestamp: new Date().getTime() });
-        productNameInput.value = ""; productCountInput.value = ""; companySelect.value = ""; productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none';
+        await addDoc(collection(db, "orders"), { 
+            name: name, 
+            count: count ? parseInt(count) : null, 
+            note: note || "", // 📝 Bazaya yazılır
+            company: company, 
+            image: imageUrl, 
+            status: "active", 
+            timestamp: new Date().getTime() 
+        });
+        
+        productNameInput.value = ""; productCountInput.value = ""; if(productNoteInput) productNoteInput.value = ""; companySelect.value = ""; productImageInput.value = ""; cameraImageInput.value = ""; selectedFile = null; fileStatusBox.style.display = 'none';
         showNotification(createNotifyBox, "✅ Sifariş uğurla verilənlər bazasına yazıldı!", "success");
     } catch (error) { 
         showNotification(createNotifyBox, "❌ Xəta baş verdi: " + error.message, "error"); 
@@ -155,11 +169,23 @@ function openModal(order) {
     activeOrderId = order.id; switchToViewMode();
     modalProductName.textContent = order.name;
     if (order.count !== null && order.count !== undefined) { modalProductCount.textContent = order.count + " ədəd"; modalProductCount.style.color = "#fff"; } else { modalProductCount.textContent = "Tələb olunmayıb"; modalProductCount.style.color = "#888"; }
+    
+    // 📝 QEYD HİSSƏSİNİ MODALDA GÖSTƏRMƏK
+    if (modalProductNote) {
+        if (order.note) {
+            modalProductNote.textContent = order.note;
+            modalProductNote.style.color = "#fff";
+        } else {
+            modalProductNote.textContent = "Qeyd yoxdur";
+            modalProductNote.style.color = "#666";
+        }
+    }
+
     if(order.status === "passive") { modalProductName.innerHTML = `${order.name} <span class="alindi-badge">✓ Alındı</span>`; }
     if (order.company) { modalCompanyBadge.textContent = order.company; modalCompanyBadge.style.display = "inline-block"; modalCompanyBadge.className = "company-badge"; } else { modalCompanyBadge.textContent = "Seçilməyib"; modalCompanyBadge.style.backgroundColor = "#555"; }
     if (order.image) { modalImageContainer.innerHTML = `<img src="${order.image}" alt="Böyük Şəkil">`; } else { modalImageContainer.innerHTML = `<div style="width:100%; height:120px; background:#121212; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:3rem;">📦</div>`; }
     
-    // 🕒 MODAL DAXİLİNƏ SAAT VƏ TARİXİ YERLƏŞDİRİRİK (Əgər element yoxdursa köhnə məlumatların altına yazır)
+    // 🕒 MODAL DAXİLİNƏ SAAT VƏ TARİX
     let modalTimeDiv = document.getElementById('modalOrderTime');
     if (!modalTimeDiv) {
         modalTimeDiv = document.createElement('div');
@@ -169,7 +195,10 @@ function openModal(order) {
     }
     modalTimeDiv.innerHTML = `<span>Sifariş vaxtı:</span><span style="color: #aaa; font-size: 0.9rem;">🕒 ${formatCustomDate(order.timestamp)}</span>`;
 
-    editProductName.value = order.name; editProductCount.value = (order.count !== null && order.count !== undefined) ? order.count : ""; editCompanySelect.value = order.company || "";
+    editProductName.value = order.name; 
+    editProductCount.value = (order.count !== null && order.count !== undefined) ? order.count : ""; 
+    if(editProductNote) editProductNote.value = order.note || ""; // 📝 Redaktə xanasına köhnə qeydi yazırıq
+    editCompanySelect.value = order.company || "";
     detailsModal.classList.add('open');
 }
 function switchToEditMode() { modalTitle.textContent = "✏️ Sifarişi Redaktə Et"; modalViewMode.style.display = "none"; modalEditMode.style.display = "flex"; viewModeButtons.style.display = "none"; editModeButtons.style.display = "flex"; }
@@ -182,17 +211,26 @@ closeModalBtn.addEventListener('click', closeModal);
 detailsModal.addEventListener('click', (e) => { if(e.target === detailsModal) closeModal(); });
 
 modalSaveEditBtn.addEventListener('click', async () => {
-    const updatedName = editProductName.value.trim(); const updatedCount = editProductCount.value.trim(); const updatedCompany = editCompanySelect.value;
+    const updatedName = editProductName.value.trim(); 
+    const updatedCount = editProductCount.value.trim(); 
+    const updatedNote = editProductNote ? editProductNote.value.trim() : ""; // 📝 Yenilənmiş qeydi alırıq
+    const updatedCompany = editCompanySelect.value;
+    
     if (!updatedName) { showNotification(listNotifyBox, "⚠️ Məhsul adı boş buraxıla bilməz!", "error"); return; }
     modalSaveEditBtn.disabled = true; modalSaveEditBtn.textContent = "Yenilənir...";
     try { 
-        await updateDoc(doc(db, "orders", activeOrderId), { name: updatedName, count: updatedCount ? parseInt(updatedCount) : null, company: updatedCompany }); 
+        await updateDoc(doc(db, "orders", activeOrderId), { 
+            name: updatedName, 
+            count: updatedCount ? parseInt(updatedCount) : null, 
+            note: updatedNote, // 📝 Qeyd yenilənir
+            company: updatedCompany 
+        }); 
         closeModal();
         showNotification(listNotifyBox, "✏️ Sifariş uğurla yeniləndi!", "success");
     } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); } finally { modalSaveEditBtn.disabled = false; modalSaveEditBtn.textContent = "💾 Yadda Saxla"; }
 });
 
-// MODAL DAXİLİNDƏKİ "ALINDI" DÜYMƏSİ (İCAZƏSİZ - BİRBAŞA İCRA)
+// MODAL DAXİLİNDƏKİ "ALINDI" DÜYMƏSİ
 modalDeleteBtn.addEventListener('click', async () => { 
     if (activeOrderId) { 
         const idToUpdate = activeOrderId; 
@@ -210,11 +248,9 @@ function enterBulkSelectMode(firstOrderId) { isBulkSelectMode = true; selectedOr
 function exitBulkSelectMode() { isBulkSelectMode = false; selectedOrderIds.clear(); bulkSelectPanel.style.display = "none"; renderOrders(); }
 function toggleOrderSelection(orderId) { if (selectedOrderIds.has(orderId)) { selectedOrderIds.delete(orderId); } else { selectedOrderIds.add(orderId); } if (selectedOrderIds.size === 0) { exitBulkSelectMode(); } else { updateBulkPanelUI(); const targetCard = document.querySelector(`.order-item[data-id="${orderId}"]`); if (targetCard) targetCard.classList.toggle('checked'); } }
 
-// 🌐 YENİLƏNDİ: DÜYMƏLƏRİN FORMASINI QORUYAN VƏ YAZINI IDARƏ EDƏN FUNKSİYA
 function updateBulkPanelUI() { 
     bulkSelectCount.textContent = `${selectedOrderIds.size} məhsul seçildi`; 
 
-    // Hazırda ekranda görünən uyğun malları tapırıq
     const visibleOrders = allOrders.filter(order => {
         let matchCompany = true;
         if (currentFilter !== "all") {
@@ -225,7 +261,6 @@ function updateBulkPanelUI() {
         return matchCompany && matchSearch;
     });
 
-    // "Hamısını Seç" düyməsinin formasını itirmədən sadəcə stilini dəyişirik
     if (visibleOrders.length > 0 && visibleOrders.every(order => selectedOrderIds.has(order.id))) {
         bulkSelectAllBtn.textContent = "❌ Seçimi Təmizlə";
         bulkSelectAllBtn.style.backgroundColor = "#e0a800"; 
@@ -234,20 +269,13 @@ function updateBulkPanelUI() {
         bulkSelectAllBtn.style.backgroundColor = "#007bff"; 
     }
 
-    // Digər düymələrin formalarının (padding və s.) itməməsi üçün standart stillərini qoruyuruq
-    bulkCancelBtn.style.padding = "6px 12px";
-    bulkCancelBtn.style.borderRadius = "6px";
-    
-    bulkMarkPassiveBtn.style.padding = "6px 12px";
-    bulkMarkPassiveBtn.style.borderRadius = "6px";
-    
-    bulkDeleteBtn.style.padding = "6px 12px";
-    bulkDeleteBtn.style.borderRadius = "6px";
+    bulkCancelBtn.style.padding = "6px 12px"; bulkCancelBtn.style.borderRadius = "6px";
+    bulkMarkPassiveBtn.style.padding = "6px 12px"; bulkMarkPassiveBtn.style.borderRadius = "6px";
+    bulkDeleteBtn.style.padding = "6px 12px"; bulkDeleteBtn.style.borderRadius = "6px";
 }
 
 bulkCancelBtn.addEventListener('click', exitBulkSelectMode);
 
-// 🌐 YENİ: "HAMISINI SEÇ" DÜYMƏSİNİN KLİKLƏNMƏ HADİSƏSİ
 bulkSelectAllBtn.addEventListener('click', () => {
     const visibleOrders = allOrders.filter(order => {
         let matchCompany = true;
@@ -262,63 +290,42 @@ bulkSelectAllBtn.addEventListener('click', () => {
     const isAllSelected = visibleOrders.length > 0 && visibleOrders.every(order => selectedOrderIds.has(order.id));
 
     if (isAllSelected) {
-        // Əgər hamısı seçilidirsə, seçimdən çıxarırıq
         visibleOrders.forEach(order => selectedOrderIds.delete(order.id));
-        if (selectedOrderIds.size === 0) {
-            exitBulkSelectMode();
-            return;
-        }
+        if (selectedOrderIds.size === 0) { exitBulkSelectMode(); return; }
     } else {
-        // Seçilməyənləri siyahıya əlavə edirik
         visibleOrders.forEach(order => selectedOrderIds.add(order.id));
     }
-
-    updateBulkPanelUI();
-    renderOrders();
+    updateBulkPanelUI(); renderOrders();
 });
 
-// TOPLU ALINDI REJİMİ (İCAZƏSİZ - BİRBAŞA İCRA)
 bulkMarkPassiveBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     const count = selectedOrderIds.size;
-    
     const batch = writeBatch(db); 
     selectedOrderIds.forEach(id => { batch.update(doc(db, "orders", id), { status: "passive" }); });
-    
     try { 
-        await batch.commit(); 
-        exitBulkSelectMode(); 
+        await batch.commit(); exitBulkSelectMode(); 
         showNotification(listNotifyBox, `🟢 ${count} ədəd məhsul toplu olaraq alındı edildi!`, "success");
-    } catch (error) { 
-        showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); 
-    }
+    } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
 });
 
-// TOPLU SİLMƏ REJİMİ (İCAZƏSİZ - BİRBAŞA İCRA)
 bulkDeleteBtn.addEventListener('click', async () => {
     if (selectedOrderIds.size === 0) return;
     const count = selectedOrderIds.size;
-    
     const batch = writeBatch(db); 
     selectedOrderIds.forEach(id => { batch.delete(doc(db, "orders", id)); });
-    
     try { 
-        await batch.commit(); 
-        exitBulkSelectMode(); 
+        await batch.commit(); exitBulkSelectMode(); 
         showNotification(listNotifyBox, `🗑️ ${count} ədəd məhsul bazadan tamamilə silindi!`, "success");
-    } catch (error) { 
-        showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); 
-    }
+    } catch (error) { showNotification(listNotifyBox, "❌ Xəta: " + error.message, "error"); }
 });
 
-// AXTARIŞ INPUTUNU DİNLƏYİRİK
 searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
     renderOrders();
-    if (isBulkSelectMode) updateBulkPanelUI(); // Axtarış edərkən düymə yazısını yenilə
+    if (isBulkSelectMode) updateBulkPanelUI();
 });
 
-// SİFARİŞLƏRİ SİYAHILAMAQ
 // SİFARİŞLƏRİ SİYAHILAMAQ
 function renderOrders() {
     orderListContainer.innerHTML = "";
@@ -358,7 +365,7 @@ function renderOrders() {
         const alindiText = (order.status === "passive") ? `<span class="alindi-badge">✓ Alındı</span>` : '';
         let countText = (order.count !== null && order.count !== undefined) ? `Sayı: ${order.count} ədəd` : `<span style="color: #777; font-style: italic;">Tələb olunmayıb</span>`;
 
-        // 🕒 ÇÖLDƏ GÖRSƏNMƏSİN DEYƏ BU HİSSƏNİ TƏMİZLƏDİK (Yalnız daxildə/modalda görünəcək)
+        // İstəyinə əsasən çöldə saat görünmür
         const timeHtml = ``;
 
         let doneClass = (order.status === "passive") ? "done" : "";
@@ -379,7 +386,6 @@ function renderOrders() {
         `;
         orderListContainer.appendChild(itemDiv);
 
-        // UZUN BASMA MƏNTİQİ
         let pressTimer;
         itemDiv.addEventListener('touchstart', (e) => { if (isBulkSelectMode || e.target.classList.contains('quick-del')) return; pressTimer = window.setTimeout(() => { enterBulkSelectMode(order.id); }, 700); });
         itemDiv.addEventListener('mousedown', (e) => { if (isBulkSelectMode || e.target.classList.contains('quick-del')) return; pressTimer = window.setTimeout(() => { enterBulkSelectMode(order.id); }, 700); });
@@ -387,7 +393,6 @@ function renderOrders() {
         itemDiv.addEventListener('touchend', cancelPress); itemDiv.addEventListener('touchmove', cancelPress); itemDiv.addEventListener('mouseup', cancelPress); itemDiv.addEventListener('mouseleave', cancelPress);
     });
 
-    // KARTA TƏK KLİKLƏMƏ
     document.querySelectorAll('.order-item').forEach(item => {
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('quick-del')) return;
@@ -396,15 +401,12 @@ function renderOrders() {
         });
     });
 
-    // SAĞDAKI QUŞ İŞARƏSİ (İCAZƏSİZ - BİRBAŞA İCRA)
     document.querySelectorAll('.quick-del').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const orderId = e.target.getAttribute('data-id');
             const foundOrder = allOrders.find(o => o.id === orderId);
-            
             if (foundOrder && foundOrder.status === "passive") return;
-            
             await updateDoc(doc(db, "orders", orderId), { status: "passive" }); 
             showNotification(listNotifyBox, `✓ ${foundOrder.name} alındı olaraq qeyd edildi!`, "success");
         });
@@ -417,7 +419,7 @@ onSnapshot(q, (snapshot) => {
     allOrders = [];
     snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); });
     renderOrders();
-    if (isBulkSelectMode) updateBulkPanelUI(); // Canlı məlumat dəyişəndə düyməni yenilə
+    if (isBulkSelectMode) updateBulkPanelUI();
 });
 
 // FİLTRLƏR
@@ -441,36 +443,20 @@ const dots = document.querySelectorAll('.pin-dots .dot');
 document.querySelectorAll('.pin-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const val = btn.getAttribute('data-val');
+        if (val === "C") { enteredPin = ""; } else if (val === "back") { enteredPin = enteredPin.slice(0, -1); } else if (enteredPin.length < 4) { enteredPin += val; }
         
-        if (val === "C") {
-            enteredPin = "";
-        } else if (val === "back") {
-            enteredPin = enteredPin.slice(0, -1);
-        } else if (enteredPin.length < 4) {
-            enteredPin += val;
-        }
-        
-        // Nöqtələrin rənglənməsi
         dots.forEach((dot, index) => {
-            if (index < enteredPin.length) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
+            if (index < enteredPin.length) { dot.classList.add('active'); } else { dot.classList.remove('active'); }
         });
         
-        // 4 rəqəm tamamlananda yoxla
         if (enteredPin.length === 4) {
             setTimeout(() => {
                 if (enteredPin === CORRECT_PIN) {
-                    pinModal.style.display = "none"; 
-                    pinError.style.display = "none";
-                    enteredPin = "";
+                    pinModal.style.display = "none"; pinError.style.display = "none"; enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
                     showNotification(listNotifyBox, "🔒 Təhlükəsiz giriş təmin olundu!", "success");
                 } else {
-                    pinError.style.display = "block"; 
-                    enteredPin = "";
+                    pinError.style.display = "block"; enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
                     navigator.vibrate ? navigator.vibrate(200) : null; 
                 }
@@ -479,54 +465,28 @@ document.querySelectorAll('.pin-btn').forEach(btn => {
     });
 });
 
-// ⌨️ KOMPÜTERİN FİZİKİ KLAVİATURASINI DİNLƏMƏK
 window.addEventListener('keydown', (e) => {
     if (pinModal.style.display === "none") return;
-
     let keyVal = "";
-
-    if (e.key >= "0" && e.key <= "9") {
-        keyVal = e.key; 
-    } else if (e.key === "Backspace") {
-        keyVal = "back"; 
-    } else if (e.key === "Escape" || e.key.toLowerCase() === "c") {
-        keyVal = "C"; 
-    }
+    if (e.key >= "0" && e.key <= "9") { keyVal = e.key; } else if (e.key === "Backspace") { keyVal = "back"; } else if (e.key === "Escape" || e.key.toLowerCase() === "c") { keyVal = "C"; }
 
     if (keyVal !== "") {
         const targetBtn = document.querySelector(`.pin-btn[data-val="${keyVal}"]`);
-        if (targetBtn) {
-            targetBtn.classList.add('active-effect');
-            setTimeout(() => targetBtn.classList.remove('active-effect'), 100);
-        }
-
-        if (keyVal === "C") {
-            enteredPin = "";
-        } else if (keyVal === "back") {
-            enteredPin = enteredPin.slice(0, -1);
-        } else if (enteredPin.length < 4) {
-            enteredPin += keyVal;
-        }
+        if (targetBtn) { targetBtn.classList.add('active-effect'); setTimeout(() => targetBtn.classList.remove('active-effect'), 100); }
+        if (keyVal === "C") { enteredPin = ""; } else if (keyVal === "back") { enteredPin = enteredPin.slice(0, -1); } else if (enteredPin.length < 4) { enteredPin += keyVal; }
 
         dots.forEach((dot, index) => {
-            if (index < enteredPin.length) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
+            if (index < enteredPin.length) { dot.classList.add('active'); } else { dot.classList.remove('active'); }
         });
 
         if (enteredPin.length === 4) {
             setTimeout(() => {
                 if (enteredPin === CORRECT_PIN) {
-                    pinModal.style.display = "none";
-                    pinError.style.display = "none";
-                    enteredPin = "";
+                    pinModal.style.display = "none"; pinError.style.display = "none"; enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
                     showNotification(listNotifyBox, "🔒 Giriş təmin olundu!", "success");
                 } else {
-                    pinError.style.display = "block";
-                    enteredPin = "";
+                    pinError.style.display = "block"; enteredPin = "";
                     dots.forEach(d => d.classList.remove('active'));
                 }
             }, 150);

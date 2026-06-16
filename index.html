@@ -51,6 +51,8 @@
                 <input type="text" id="productName" placeholder="Məhsulun adı..." autocomplete="off">
                 <input type="number" id="productCount" placeholder="Neçə ədəd lazımdır?">
                 
+                <textarea id="productNote" placeholder="Sifariş qeydi (İstəyə bağlı)..." autocomplete="off" rows="3" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 50px; max-height: 300px; box-sizing: border-box;"></textarea>
+                
                 <div class="select-group">
                     <label for="companySelect">Şirkət (İstəyə bağlı):</label>
                     <select id="companySelect">
@@ -140,6 +142,10 @@
                     <span>Sayı:</span>
                     <span id="modalProductCount" style="font-weight: bold; color: #fff;"></span>
                 </div>
+                <div class="modal-info-row" id="modalNoteRow">
+                    <span>Qeyd:</span>
+                    <span id="modalProductNote" style="color: #fff; font-style: italic;"></span>
+                </div>
             </div>
 
             <div id="modalEditMode" class="modal-body" style="display: none;">
@@ -149,6 +155,9 @@
                     
                     <label style="font-size: 0.85rem; color: #aaa;">Sayı:</label>
                     <input type="number" id="editProductCount">
+
+                    <label style="font-size: 0.85rem; color: #aaa;">Sifariş Qeydi:</label>
+                    <textarea id="editProductNote" placeholder="Qeydi redaktə et..." autocomplete="off" rows="3" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 50px; max-height: 200px; box-sizing: border-box;"></textarea>
                     
                     <label style="font-size: 0.85rem; color: #aaa;">Şirkət:</label>
                     <select id="editCompanySelect">
