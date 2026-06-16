@@ -699,3 +699,57 @@ input:focus, select:focus {
 }
 .pin-btn.clear { color: #ff4d4d; font-size: 1.2rem; }
 .pin-btn.delete { color: #ffc107; font-size: 1.2rem; }
+
+/* 🖥️ KOMPÜTER EKRANLARI ÜÇÜN BOYUTMA VƏ GENİŞLƏNDİRMƏ */
+@media (min-width: 768px) {
+    /* Əsas konteynerin kompüterdə daha geniş olması üçün */
+    .app-container {
+        max-width: 950px !important; /* Enini mağaza tətbiqinə uyğun genişlətdik */
+        width: 100% !important;
+        margin: 30px auto !important;
+        padding: 0 20px;
+    }
+
+    /* Form və Siyahı bölmələrinin daxili sahəsini böyüdürük */
+    .card-section {
+        max-width: 100% !important;
+        padding: 30px !important;
+        border-radius: 16px !important;
+    }
+
+    /* 📝 Yeni Sifariş Yarat bölməsində daxiletmə sahələrini böyüdürük */
+    .form-group input, 
+    .form-group select,
+    .select-group select {
+        padding: 15px !important; /* Yazı yerləri kompüterdə daha rahat görünsün */
+        font-size: 1.1rem !important;
+    }
+
+    /* 📸 Qalereya və Kamera düymələrini yan-yana daha nizamlı edirik */
+    .image-buttons-container {
+        gap: 20px !important;
+    }
+    .upload-btn {
+        padding: 15px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* 📦 Aktiv Sifarişlər Siyahısı Kompüterdə */
+    #orderList {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important; /* Sifarişləri yan-yana 2 sütun edir ki, ekrana çox mal yerləşsin! */
+        gap: 15px !important;
+    }
+
+    /* Sifariş kartlarının daxili nizamı */
+    .order-item {
+        margin-bottom: 0 !important; /* Grid sisteminə keçdiyimiz üçün alt boşluğu sıfırlayırıq */
+        padding: 15px !important;
+    }
+
+    /* Əgər axtarışa uyğun mal tapılmasa, mesajın tam eni əhatə etməsi üçün */
+    .empty-text {
+        grid-column: span 2 !important;
+        text-align: center;
+    }
+}

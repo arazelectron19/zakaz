@@ -374,3 +374,66 @@ document.querySelectorAll('.pin-btn').forEach(btn => {
         }
     });
 });
+
+////////////////////////////////////keybord/////////////////////////////////////
+// ⌨️ KOMPÜTERİN FİZİKİ KLAVİATURASINI DİNLƏMƏK
+window.addEventListener('keydown', (e) => {
+    // Əgər PİN kod ekranı hazırda açıq deyilsə, klaviaturanı dinləmə, boş ver
+    if (pinModal.style.display === "none") return;
+
+    let keyVal = "";
+
+    // Basılan düyməni yoxlayırıq
+    if (e.key >= "0" && e.key <= "9") {
+        keyVal = e.key; // 0-9 arası rəqəmlər
+    } else if (e.key === "Backspace") {
+        keyVal = "back"; // Silmə düyməsi (⌫)
+    } else if (e.key === "Escape" || e.key.toLowerCase() === "c") {
+        keyVal = "C"; // Təmizləmə düyməsi (C)
+    }
+
+    // Əgər keçərli bir düymə basılıbsa, eyni düymə kliklənmə funksiyasını çağırırıq
+    if (keyVal !== "") {
+        // Ekrandakı uyğun düyməni tapıb vizual olaraq basılma effekti veririk (istəyə bağlı)
+        const targetBtn = document.querySelector(`.pin-btn[data-val="${keyVal}"]`);
+        if (targetBtn) {
+            targetBtn.classList.add('active-effect');
+            setTimeout(() => targetBtn.classList.remove('active-effect'), 100);
+        }
+
+        // PİN kodun məntiqi (rəqəm əlavə etmə və silmə)
+        if (keyVal === "C") {
+            enteredPin = "";
+        } else if (keyVal === "back") {
+            enteredPin = enteredPin.slice(0, -1);
+        } else if (enteredPin.length < 4) {
+            enteredPin += keyVal;
+        }
+
+        // Nöqtələri rəngləmək
+        dots.forEach((dot, index) => {
+            if (index < enteredPin.length) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+
+        // 4 rəqəm tamamlananda şifrəni yoxlamaq
+        if (enteredPin.length === 4) {
+            setTimeout(() => {
+                if (enteredPin === CORRECT_PIN) {
+                    pinModal.style.display = "none";
+                    pinError.style.display = "none";
+                    enteredPin = "";
+                    dots.forEach(d => d.classList.remove('active'));
+                    showNotification(listNotifyBox, "🔒 Giriş təmin olundu!", "success");
+                } else {
+                    pinError.style.display = "block";
+                    enteredPin = "";
+                    dots.forEach(d => d.classList.remove('active'));
+                }
+            }, 150);
+        }
+    }
+});
