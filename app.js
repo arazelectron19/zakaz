@@ -75,6 +75,30 @@ let activeOrderId = null;
 let isBulkSelectMode = false;
 let selectedOrderIds = new Set();
 
+// 🕒 YENİ: TARİX VƏ SAATI PEŞƏKAR FORMATLAYAN KÖMƏKÇİ FUNKSİYA
+function formatCustomDate(timestampValue) {
+    if (!timestampValue) return "";
+    
+    const date = new Date(timestampValue);
+    if (isNaN(date.getTime())) return "";
+
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
+    if (isToday) {
+        return `Bugün, ${timeStr}`;
+    } else {
+        const months = ["Yan", "Fev", "Mar", "Apr", "May", "İyun", "İyul", "Avq", "Sen", "Okt", "Noy", "Dek"];
+        return `${date.getDate()} ${months[date.getMonth()]}, ${timeStr}`;
+    }
+}
+
 // 🔔 PEŞƏKAR BLOK DAXİLİ BİLDİRİŞ FUNKSİYASI
 function showNotification(targetBox, text, type) {
     targetBox.textContent = text;
@@ -134,6 +158,17 @@ function openModal(order) {
     if(order.status === "passive") { modalProductName.innerHTML = `${order.name} <span class="alindi-badge">✓ Alındı</span>`; }
     if (order.company) { modalCompanyBadge.textContent = order.company; modalCompanyBadge.style.display = "inline-block"; modalCompanyBadge.className = "company-badge"; } else { modalCompanyBadge.textContent = "Seçilməyib"; modalCompanyBadge.style.backgroundColor = "#555"; }
     if (order.image) { modalImageContainer.innerHTML = `<img src="${order.image}" alt="Böyük Şəkil">`; } else { modalImageContainer.innerHTML = `<div style="width:100%; height:120px; background:#121212; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:3rem;">📦</div>`; }
+    
+    // 🕒 MODAL DAXİLİNƏ SAAT VƏ TARİXİ YERLƏŞDİRİRİK (Əgər element yoxdursa köhnə məlumatların altına yazır)
+    let modalTimeDiv = document.getElementById('modalOrderTime');
+    if (!modalTimeDiv) {
+        modalTimeDiv = document.createElement('div');
+        modalTimeDiv.id = 'modalOrderTime';
+        modalTimeDiv.className = 'modal-info-row';
+        modalViewMode.appendChild(modalTimeDiv);
+    }
+    modalTimeDiv.innerHTML = `<span>Sifariş vaxtı:</span><span style="color: #aaa; font-size: 0.9rem;">🕒 ${formatCustomDate(order.timestamp)}</span>`;
+
     editProductName.value = order.name; editProductCount.value = (order.count !== null && order.count !== undefined) ? order.count : ""; editCompanySelect.value = order.company || "";
     detailsModal.classList.add('open');
 }
@@ -284,6 +319,7 @@ searchInput.addEventListener('input', (e) => {
 });
 
 // SİFARİŞLƏRİ SİYAHILAMAQ
+// SİFARİŞLƏRİ SİYAHILAMAQ
 function renderOrders() {
     orderListContainer.innerHTML = "";
     
@@ -322,6 +358,9 @@ function renderOrders() {
         const alindiText = (order.status === "passive") ? `<span class="alindi-badge">✓ Alındı</span>` : '';
         let countText = (order.count !== null && order.count !== undefined) ? `Sayı: ${order.count} ədəd` : `<span style="color: #777; font-style: italic;">Tələb olunmayıb</span>`;
 
+        // 🕒 ÇÖLDƏ GÖRSƏNMƏSİN DEYƏ BU HİSSƏNİ TƏMİZLƏDİK (Yalnız daxildə/modalda görünəcək)
+        const timeHtml = ``;
+
         let doneClass = (order.status === "passive") ? "done" : "";
         const deleteButtonHtml = isBulkSelectMode ? '' : `<button class="delete-btn quick-del ${doneClass}" data-id="${order.id}">✓</button>`;
 
@@ -333,6 +372,7 @@ function renderOrders() {
                     <div>${companyBadge} ${alindiText}</div>
                     <strong>${order.name}</strong>
                     <span>${countText}</span>
+                    ${timeHtml}
                 </div>
             </div>
             ${deleteButtonHtml}
