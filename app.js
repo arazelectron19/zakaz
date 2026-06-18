@@ -240,7 +240,6 @@ function openModal(order) {
             typeBadge.textContent = "👤 Müştəri Sifarişi";
             typeBadge.style.background = "#6f42c1";
             typeBadge.style.display = "inline-block";
-            // 📞 TELEFON NÖMRƏSİ BURADA (DETAL SƏHİFƏSİNDƏ) GÖRSƏNƏCƏK
             if (modalPhoneRow && modalCustomerPhone) {
                 modalCustomerPhone.textContent = order.customerPhone || "Nömrə yoxdur";
                 modalPhoneRow.style.display = "flex";
@@ -315,13 +314,10 @@ function getVisibleOrders() {
         let matchFilter = true;
         if (currentFilter !== "all") {
             if (currentFilter === "type-customer") {
-                // Müştəri düyməsi basılıbsa, yalnız müştəri sifarişlərini göstər
                 matchFilter = (order.orderType === "customer");
             } else if (currentFilter === "none") {
-                // Şirkətsiz düyməsi basılıbsa, şirkəti olmayan adi sifarişləri göstər
                 matchFilter = !order.company && (order.orderType !== "customer");
             } else {
-                // ✅ Yenilənmiş məntiq: Əgər mağaza filtri (məs. ABV) seçilibsə, həm mağazanın öz sifarişləri, həm də müştərinin o mağazadan olan istəkləri birlikdə görünəcək!
                 matchFilter = (order.company === currentFilter);
             }
         }
@@ -392,7 +388,6 @@ function renderOrders() {
         const imgTag = order.image ? `<img src="${order.image}" width="55" height="55" alt="product">` : `<div style="width:55px; height:55px; background:#333; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📦</div>`;
         const companyBadge = order.company ? `<span class="company-badge">${order.company}</span>` : '';
         
-        // 📱 MƏHZ SİZİN İSTƏDİYİNİZ YENİLİK: Kartın üzərində nömrə gizlədildi, sadəcə mor rəngdə "👤 Müştəri" nişanı qaldı
         let typeBadgeHtml = '';
         if (order.orderType === 'customer') {
             typeBadgeHtml = `<span class="company-badge" style="background-color: #6f42c1; color: #fff;">👤 Müştəri</span>`;
@@ -416,7 +411,6 @@ function renderOrders() {
         `;
         orderListContainer.appendChild(itemDiv);
 
-        // Uzun basma (Long Press) ilə toplu seçim rejimi
         let pressTimer;
         itemDiv.addEventListener('touchstart', () => { pressTimer = setTimeout(() => enterBulkSelectMode(order.id), 700); });
         itemDiv.addEventListener('mousedown', () => { pressTimer = setTimeout(() => enterBulkSelectMode(order.id), 700); });
@@ -424,7 +418,6 @@ function renderOrders() {
         itemDiv.addEventListener('touchend', cancelPress); itemDiv.addEventListener('mouseup', cancelPress);
     });
 
-    // Klikləmə məntiqləri
     document.querySelectorAll('.order-item').forEach(item => {
         item.addEventListener('click', (e) => {
             if (e.target.classList.contains('quick-del')) return;
@@ -462,49 +455,82 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     });
 });
 
-// 🔐 PİN KOD
+// 🔐 PİN KOD FUNKSİYASI (HƏM VİRTUAL, HƏM FİZİKİ KLAVİATURA DƏSTƏYİ İLƏ)
 const CORRECT_PIN = "7388"; 
 let enteredPin = "";
 const pinModal = document.getElementById('pinModal');
 const pinError = document.getElementById('pinError');
 const dots = document.querySelectorAll('.pin-dots .dot');
 
+// Bu funksiya daxil edilən pini emal edir və yoxlayır
+function processPinInput(val) {
+    // Əgər PIN modalı artıq bağlıdırsa, klaviaturadan gələn rəqəmləri qəbul etmə (input xanaları işləsin)
+    if (pinModal && pinModal.style.display === "none") return;
+
+    if (val === "C") { 
+        enteredPin = ""; 
+    } else if (val === "back") { 
+        enteredPin = enteredPin.slice(0, -1); 
+    } else if (enteredPin.length < 4 && !isNaN(val)) { 
+        enteredPin += val; 
+    }
+    
+    dots.forEach((dot, index) => { 
+        if (index < enteredPin.length) dot.classList.add('active'); 
+        else dot.classList.remove('active'); 
+    });
+    
+    if (enteredPin.length === 4) {
+        setTimeout(() => {
+            if (enteredPin === CORRECT_PIN) {
+                if (pinModal) pinModal.style.display = "none"; 
+                enteredPin = "";
+                dots.forEach(d => d.classList.remove('active'));
+                if (pinError) pinError.style.display = "none";
+            } else {
+                if (pinError) pinError.style.display = "block"; 
+                enteredPin = "";
+                dots.forEach(d => d.classList.remove('active'));
+            }
+        }, 150);
+    }
+}
+
+// 1. Ekrandakı virtual düymələrə klikləmə
 document.querySelectorAll('.pin-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const val = btn.getAttribute('data-val');
-        if (val === "C") { enteredPin = ""; } else if (val === "back") { enteredPin = enteredPin.slice(0, -1); } else if (enteredPin.length < 4) { enteredPin += val; }
-        
-        dots.forEach((dot, index) => { if (index < enteredPin.length) dot.classList.add('active'); else dot.classList.remove('active'); });
-        
-        if (enteredPin.length === 4) {
-            setTimeout(() => {
-                if (enteredPin === CORRECT_PIN) {
-                    pinModal.style.display = "none"; enteredPin = "";
-                    dots.forEach(d => d.classList.remove('active'));
-                } else {
-                    pinError.style.display = "block"; enteredPin = "";
-                    dots.forEach(d => d.classList.remove('active'));
-                }
-            }, 150);
-        }
+        processPinInput(val);
     });
+});
+
+// 2. ⚡ FİZİKİ KLAVİATURANIN KİLİDİNİ QALDIRAN VƏ DƏSTƏKLƏYƏN HİSSƏ
+window.addEventListener('keydown', (e) => {
+    // Əgər pin modalı ekranda yoxdursa və ya gizlidirsə, fiziki klaviatura maneəsiz olaraq normal işləsin
+    if (!pinModal || pinModal.style.display === "none") return;
+
+    // Əgər modal açıqdırsa, yalnız PIN üçün lazım olan düymələri dinləyirik
+    if (e.key >= '0' && e.key <= '9') {
+        processPinInput(e.key);
+    } else if (e.key === 'Backspace') {
+        processPinInput('back');
+    } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+        processPinInput('C');
+    }
 });
 
 // 🔍 ŞƏKLİ TAM EKRAN (LIGHTBOX) ETMƏK MƏNTİQİ
 if (modalImageContainer) {
     modalImageContainer.addEventListener('click', (e) => {
-        // Kliklənən elementin həqiqətən şəkil olduğunu yoxlayırıq
         const clickedImg = e.target.closest('img');
         if (!clickedImg) return;
 
-        // Əgər artıq tam ekrandadırsa, normal vəziyyətinə qaytar
         if (clickedImg.classList.contains('fullscreen-mode')) {
             clickedImg.classList.remove('fullscreen-mode');
-            document.body.style.overflow = ''; // Səhifənin sürüşməsini bərpa et
+            document.body.style.overflow = ''; 
         } else {
-            // Tam ekran rejimini aktiv et
             clickedImg.classList.add('fullscreen-mode');
-            document.body.style.overflow = 'hidden'; // Şəkil böyük olanda arxa tərəf sürüşməsin
+            document.body.style.overflow = 'hidden'; 
         }
     });
 }
