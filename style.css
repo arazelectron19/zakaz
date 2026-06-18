@@ -767,3 +767,27 @@ input:focus, select:focus {
 .bulk-btn.select-all-btn:hover {
     background-color: #0056b3 !important;
 }
+
+/* Detal kartındakı şəklin üzərinə gələndə böyüdücü kursor çıxsın */
+#modalImageContainer img {
+    cursor: zoom-in;
+    transition: transform 0.2s ease, all 0.2s ease;
+}
+
+/* 📱 TAM EKRAN (FULLSCREEN) REJİMİ */
+#modalImageContainer img.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    object-fit: contain; /* Şəklin en-uzunluq nisbətini qorusun */
+    background: rgba(0, 0, 0, 0.95); /* Arxa fon tam qaranlıq olsun */
+    z-index: 99999; /* Hər şeyin, hətta modalın da üstündə dursun */
+    cursor: zoom-out; /* İndi də klikləyəndə kiçiləcəyini göstərsin */
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+}

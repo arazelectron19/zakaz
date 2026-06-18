@@ -489,3 +489,22 @@ document.querySelectorAll('.pin-btn').forEach(btn => {
         }
     });
 });
+
+// 🔍 ŞƏKLİ TAM EKRAN (LIGHTBOX) ETMƏK MƏNTİQİ
+if (modalImageContainer) {
+    modalImageContainer.addEventListener('click', (e) => {
+        // Kliklənən elementin həqiqətən şəkil olduğunu yoxlayırıq
+        const clickedImg = e.target.closest('img');
+        if (!clickedImg) return;
+
+        // Əgər artıq tam ekrandadırsa, normal vəziyyətinə qaytar
+        if (clickedImg.classList.contains('fullscreen-mode')) {
+            clickedImg.classList.remove('fullscreen-mode');
+            document.body.style.overflow = ''; // Səhifənin sürüşməsini bərpa et
+        } else {
+            // Tam ekran rejimini aktiv et
+            clickedImg.classList.add('fullscreen-mode');
+            document.body.style.overflow = 'hidden'; // Şəkil böyük olanda arxa tərəf sürüşməsin
+        }
+    });
+}
