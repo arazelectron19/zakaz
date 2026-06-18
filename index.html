@@ -51,8 +51,17 @@
                 <input type="text" id="productName" placeholder="Məhsulun adı..." autocomplete="off">
                 <input type="number" id="productCount" placeholder="Neçə ədəd lazımdır?">
                 
-                <textarea id="productNote" placeholder="Sifariş qeydi (İstəyə bağlı)..." autocomplete="off" rows="3" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 50px; max-height: 300px; box-sizing: border-box;"></textarea>
+                <textarea id="productNote" placeholder="Sifariş qeydi (İstəyə bağlı)..." autocomplete="off" rows="3" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 50px; max-height: 300px; box-sizing: border-box; margin-bottom: 5px;"></textarea>
                 
+                <div class="order-type-container" style="display: flex; gap: 10px; margin: 10px 0 15px 0;">
+                    <button type="button" id="typeNormalBtn" class="type-select-btn active" data-type="normal" style="flex: 1; padding: 12px; background: #007bff; color: #fff; border: 2px solid #007bff; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s ease;">📦 Adi Sifariş</button>
+                    <button type="button" id="typeCustomerBtn" class="type-select-btn" data-type="customer" style="flex: 1; padding: 12px; background: #222; color: #aaa; border: 2px solid #333; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s ease;">👤 Müştəri Sifarişi</button>
+                </div>
+
+                <div id="customerPhoneBox" style="display: none; margin-bottom: 15px;">
+                    <input type="tel" id="customerPhone" placeholder="Müştərinin telefon nömrəsi..." autocomplete="off" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box;">
+                </div>
+
                 <div class="select-group">
                     <label for="companySelect">Şirkət (İstəyə bağlı):</label>
                     <select id="companySelect">
@@ -92,8 +101,9 @@
                 <input type="text" id="searchInput" placeholder="🔍 Axtar">
             </div>
             
-            <div class="filter-tabs">
+            <div class="filter-tabs" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px;">
                 <button class="filter-btn active" data-filter="all">Hamısı</button>
+                <button class="filter-btn" data-filter="type-customer" style="background: #6f42c1; color: white;">👤 Müştəri</button>
                 <button class="filter-btn" data-filter="Yupiter">Yupiter</button>
                 <button class="filter-btn" data-filter="ABV">ABV</button>
                 <button class="filter-btn" data-filter="ONOFF">ONOFF</button>
@@ -135,6 +145,14 @@
                 <div id="modalImageContainer"></div>
                 <h4 id="modalProductName"></h4>
                 <div class="modal-info-row">
+                    <span>Sifariş Növü:</span>
+                    <span id="modalOrderTypeBadge" style="font-weight: bold; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem;"></span>
+                </div>
+                <div class="modal-info-row" id="modalPhoneRow" style="display: none;">
+                    <span>Müştəri Tel:</span>
+                    <span id="modalCustomerPhone" style="font-weight: bold; color: #6f42c1;"></span>
+                </div>
+                <div class="modal-info-row">
                     <span>Şirkət:</span>
                     <span id="modalCompanyBadge"></span>
                 </div>
@@ -159,6 +177,17 @@
                     <label style="font-size: 0.85rem; color: #aaa;">Sifariş Qeydi:</label>
                     <textarea id="editProductNote" placeholder="Qeydi redaktə et..." autocomplete="off" rows="3" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; resize: vertical; min-height: 50px; max-height: 200px; box-sizing: border-box;"></textarea>
                     
+                    <label style="font-size: 0.85rem; color: #aaa; margin-top: 10px; display: block;">Sifariş Növü:</label>
+                    <div class="edit-order-type-container" style="display: flex; gap: 10px; margin: 5px 0 10px 0;">
+                        <button type="button" id="editTypeNormalBtn" class="edit-type-btn" data-type="normal" style="flex: 1; padding: 10px; background: #222; color: #aaa; border: 1px solid #333; border-radius: 6px; font-weight: bold; cursor: pointer;">📦 Adi</button>
+                        <button type="button" id="editTypeCustomerBtn" class="edit-type-btn" data-type="customer" style="flex: 1; padding: 10px; background: #222; color: #aaa; border: 1px solid #333; border-radius: 6px; font-weight: bold; cursor: pointer;">👤 Müştəri</button>
+                    </div>
+
+                    <div id="editCustomerPhoneBox" style="display: none; margin-bottom: 10px;">
+                        <label style="font-size: 0.85rem; color: #aaa;">Müştəri Telefonu:</label>
+                        <input type="tel" id="editCustomerPhone" style="width: 100%; padding: 12px; background: #222; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box;">
+                    </div>
+
                     <label style="font-size: 0.85rem; color: #aaa;">Şirkət:</label>
                     <select id="editCompanySelect">
                         <option value="">-- Şirkət Seçilməyib --</option>
