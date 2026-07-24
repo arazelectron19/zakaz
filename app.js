@@ -361,7 +361,7 @@ bulkDeleteBtn.addEventListener('click', async () => {
     const batch = writeBatch(db); 
     selectedOrderIds.forEach(id => { batch.delete(doc(db, "orders", id)); });
     await batch.commit(); exitBulkSelectMode(); 
-    showNotification(listNotifyBox, `🗑️ Məhsullar tam silindi!`, "success");
+    showNotification(listNotifyBox, `🗑️ Məhsullar silindi!`, "success");
 });
 
 searchInput.addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase().trim(); renderOrders(); });
@@ -394,7 +394,7 @@ function renderOrders() {
         }
 
         const alindiText = (order.status === "passive") ? `<span class="alindi-badge">✓ Alındı</span>` : '';
-        let countText = order.count ? `Sayı: ${order.count} ədəd` : `<span style="color: #777; font-style: italic;">Tələb olunmayıb</span>`;
+        let countText = order.count ? `Sayı: ${order.count} ədəd` : `<span style="color: #777; font-style: italic;"></span>`;
         const deleteButtonHtml = isBulkSelectMode ? '' : `<button class="delete-btn quick-del" data-id="${order.id}">✓</button>`;
 
         itemDiv.innerHTML = `
